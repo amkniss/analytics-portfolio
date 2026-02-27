@@ -1,6 +1,8 @@
 # 📊 Customer Analytics Dashboard - Portfolio Project
 
-**Live Demo:** [View Dashboard](https://amkniss.github.io/analytics-portfolio/)
+**Production website:** [digitalkniss.com](https://digitalkniss.com) — audit/dashboard pages may be linked from there or served from the repo's GitHub Pages.
+
+**Live Demo (GitHub Pages):** [View Dashboard](https://amkniss.github.io/analytics-portfolio/)
 
 An interactive, fully-featured customer analytics dashboard showcasing data visualization and business intelligence capabilities.
 

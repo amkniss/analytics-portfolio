@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Travelon | Unified Diagnostic + Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --dk-primary: #4074c5;
+      --dk-navy: #02155a;
+      --dk-blue: #127ddd;
+      --dk-cyan: #30dbe7;
+      --dk-white: #ffffff;
+      --dk-light: #ecf0f1;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: linear-gradient(180deg, #f7fafc 0%, var(--dk-light) 100%);
+      color: #0f172a;
+    }
+
+    .audit-logo {
+      width: auto;
+      max-height: 40px;
+      max-width: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    @media (max-width: 640px) {
+      .audit-logo { max-height: 32px; }
+    }
+
+    .tab-btn {
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--dk-navy);
+      border-color: var(--dk-navy);
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(2, 21, 90, 0.2);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 340px;
+    }
+
+    .kpi-card {
+      border: 1px solid #dbe5ef;
+      background: #fff;
+      border-radius: 16px;
+    }
+
+    .detail-card {
+      border-left: 4px solid var(--dk-blue);
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+    }
+
+    .device-frame {
+      max-width: 480px;
+      margin: auto;
+      border: 8px solid #1a202c;
+      border-radius: 32px;
+      height: 800px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+    }
+
+    .pdp-scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+    }
+
+    .pdp-product-img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+      background: #f1f5f9;
+    }
+
+    .sticky-atc-wrap {
+      flex-shrink: 0;
+      background: #fff;
+      border-top: 1px solid #e2e8f0;
+      padding: 12px 16px;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.06);
+      z-index: 20;
+    }
+
+    .mobile-menu { display: none; }
+    .mobile-menu.open { display: block; }
+
+    #book-modal { display: none; }
+    #book-modal.show { display: flex; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #bfccdf; border-radius: 999px; }
+  </style>
+</head>
+<body class="font-sans antialiased">
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200">
+    <nav class="max-w-7xl mx-auto px-4 sm:px-8 py-3 flex items-center justify-between gap-4">
+      <a href="https://digitalkniss.com/" class="shrink-0" aria-label="DigitalKniss Home">
+        <img src="/logo-digital-kniss.png" alt="Digital Kniss" class="audit-logo" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
+        <span class="hidden text-lg font-bold text-slate-900">DigitalKniss</span>
+      </a>
+
+      <button id="mobile-menu-btn" class="sm:hidden inline-flex items-center justify-center rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700" aria-label="Toggle navigation">
+        Menu
+      </button>
+
+      <div class="hidden sm:flex items-center gap-4 min-w-0">
+        <a href="#overview" class="text-sm text-slate-600 hover:text-[var(--dk-navy)]">Overview</a>
+        <a href="#findings" class="text-sm text-slate-600 hover:text-[var(--dk-navy)]">Findings</a>
+        <a href="#pdp" class="text-sm text-slate-600 hover:text-[var(--dk-navy)]">PDP Before/After</a>
+        <a href="#roadmap" class="text-sm text-slate-600 hover:text-[var(--dk-navy)]">90-Day Plan</a>
+        <a href="https://calendar.app.google/wo43HPW4Be8DQns99/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-white" style="background: var(--dk-navy);">Book a Strategy Call</a>
+      </div>
+    </nav>
+
+    <div id="mobile-menu" class="mobile-menu sm:hidden border-t border-slate-200 bg-white px-4 py-4 space-y-3">
+      <a href="#overview" class="block text-sm font-medium text-slate-700">Overview</a>
+      <a href="#findings" class="block text-sm font-medium text-slate-700">Findings</a>
+      <a href="#pdp" class="block text-sm font-medium text-slate-700">PDP Before/After</a>
+      <a href="#roadmap" class="block text-sm font-medium text-slate-700">90-Day Plan</a>
+      <a href="https://calendar.app.google/wo43HPW4Be8DQns99/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-white" style="background: var(--dk-navy);">Book a Strategy Call</a>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-10 space-y-10 sm:space-y-14">
+    <section id="overview" class="rounded-3xl p-6 sm:p-10 text-white shadow-xl" style="background: linear-gradient(135deg, var(--dk-navy), var(--dk-primary));">
+      <p class="text-xs tracking-[0.18em] uppercase text-cyan-100 font-semibold">Travelon Audit</p>
+      <h1 class="mt-3 text-3xl sm:text-5xl font-bold leading-tight">Unified Diagnostic + Revenue Recovery Dashboard</h1>
+      <p class="mt-4 max-w-3xl text-sm sm:text-lg text-slate-100">Travelon's product authority is strong, but technical and UX friction is limiting conversion. This one-page audit combines diagnostic, dashboard, and PDP before/after execution path.</p>
+      <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="rounded-xl bg-white/10 p-4 border border-white/20">
+          <p class="text-2xl font-bold">$61,735</p>
+          <p class="text-xs uppercase tracking-widest text-slate-200">Monthly Revenue Leak</p>
+        </div>
+        <div class="rounded-xl bg-white/10 p-4 border border-white/20">
+          <p class="text-2xl font-bold">+30%</p>
+          <p class="text-xs uppercase tracking-widest text-slate-200">Recovery Potential</p>
+        </div>
+        <div class="rounded-xl bg-white/10 p-4 border border-white/20">
+          <p class="text-2xl font-bold">90 Days</p>
+          <p class="text-xs uppercase tracking-widest text-slate-200">Implementation Horizon</p>
+        </div>
+      </div>
+    </section>
+
+    <section aria-label="Mode tabs" class="space-y-4">
+      <div class="flex flex-wrap gap-2">
+        <button id="tab-diagnostic" class="tab-btn active px-4 py-2 rounded-full text-sm font-semibold" onclick="setActiveTab('diagnostic')">Diagnostic</button>
+        <button id="tab-dashboard" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold" onclick="setActiveTab('dashboard')">Dashboard</button>
+        <button id="tab-pdp" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold" onclick="setActiveTab('pdp')">PDP Mockup</button>
+      </div>
+
+      <section id="diagnostic" class="tab-panel active space-y-8">
+        <div class="grid lg:grid-cols-2 gap-6">
+          <article class="kpi-card p-6">
+            <h2 class="text-2xl font-bold text-slate-900">Technical Diagnostic Snapshot</h2>
+            <p class="mt-3 text-slate-600">Travelon's brand signal is 9/10 while digital execution is closer to 4/10. Key friction points are search relevance, mobile navigation load, and checkout script stability.</p>
+            <div class="mt-5 grid grid-cols-2 gap-4">
+              <div class="rounded-xl p-4" style="background: #edf4ff; border:1px solid #c5daf8;">
+                <div class="text-2xl font-bold" style="color: var(--dk-navy);">52%</div>
+                <p class="text-xs uppercase tracking-widest text-slate-500">Mobile Performance</p>
+              </div>
+              <div class="rounded-xl p-4" style="background: #e8fbfd; border:1px solid #bdeff4;">
+                <div class="text-2xl font-bold" style="color: var(--dk-blue);">30%</div>
+                <p class="text-xs uppercase tracking-widest text-slate-500">Uplift Opportunity</p>
+              </div>
+            </div>
+          </article>
+          <div class="kpi-card p-4 sm:p-6">
+            <h3 class="font-bold text-lg text-slate-900 mb-4">Health Radar</h3>
+            <div class="chart-container"><canvas id="healthRadar"></canvas></div>
+          </div>
+        </div>
+
+        <div id="findings" class="space-y-4">
+          <article class="detail-card p-5">
+            <h3 class="font-bold text-lg">Finding 1: Search Intent Mismatch</h3>
+            <p class="mt-2 text-sm text-slate-600">High-intent "purse" queries route to less relevant tote/backpack products. Result is a search-to-exit loop on high-value sessions.</p>
+          </article>
+          <article class="detail-card p-5" style="border-left-color: var(--dk-primary);">
+            <h3 class="font-bold text-lg">Finding 2: Mobile Navigation Overload</h3>
+            <p class="mt-2 text-sm text-slate-600">Text-heavy menu architecture increases cognitive load and bounce before PDP engagement.</p>
+          </article>
+          <article class="detail-card p-5" style="border-left-color: var(--dk-cyan);">
+            <h3 class="font-bold text-lg">Finding 3: PDP Messaging Is Spec-First</h3>
+            <p class="mt-2 text-sm text-slate-600">Current copy prioritizes technical detail over emotional assurance and security benefit framing.</p>
+          </article>
+          <article class="detail-card p-5" style="border-left-color: #0ea5e9;">
+            <h3 class="font-bold text-lg">Finding 4: Checkout Error Risk</h3>
+            <p class="mt-2 text-sm text-slate-600">Script conflict reports on mobile checkout create avoidable abandonment in late funnel behavior.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="dashboard" class="tab-panel space-y-8">
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <article class="kpi-card p-5">
+            <p class="text-xs uppercase tracking-widest text-slate-500">Checkout Conflict</p>
+            <p class="mt-2 text-2xl font-bold" style="color: var(--dk-navy);">$11,160/mo</p>
+            <p class="mt-2 text-sm text-slate-600">Mobile checkout script conflicts on Safari/Chrome.</p>
+          </article>
+          <article class="kpi-card p-5">
+            <p class="text-xs uppercase tracking-widest text-slate-500">Search/Tag Logic</p>
+            <p class="mt-2 text-2xl font-bold" style="color: var(--dk-blue);">$13,125/mo</p>
+            <p class="mt-2 text-sm text-slate-600">Intent mismatch between category tags and user queries.</p>
+          </article>
+          <article class="kpi-card p-5">
+            <p class="text-xs uppercase tracking-widest text-slate-500">PDP Conversion Gap</p>
+            <p class="mt-2 text-2xl font-bold" style="color: var(--dk-primary);">$23,625/mo</p>
+            <p class="mt-2 text-sm text-slate-600">Feature-heavy copy reducing confidence and momentum.</p>
+          </article>
+        </div>
+
+        <section id="roadmap" class="space-y-4">
+          <h3 class="text-2xl font-bold">90-Day Plan</h3>
+          <div class="grid lg:grid-cols-3 gap-4">
+            <article class="kpi-card p-5">
+              <p class="text-xs uppercase tracking-widest" style="color: var(--dk-navy);">Phase 1 · Days 1-30</p>
+              <h4 class="mt-2 font-bold text-lg">Revenue Recovery</h4>
+              <p class="mt-2 text-sm text-slate-600">Fix checkout conflicts, repair search tags, and deploy fallback recovery flows.</p>
+            </article>
+            <article class="kpi-card p-5">
+              <p class="text-xs uppercase tracking-widest" style="color: var(--dk-blue);">Phase 2 · Days 31-60</p>
+              <h4 class="mt-2 font-bold text-lg">Conversion Lift</h4>
+              <p class="mt-2 text-sm text-slate-600">Roll out visual nav, benefit-first PDP, sticky ATC, and FAQ schema.</p>
+            </article>
+            <article class="kpi-card p-5">
+              <p class="text-xs uppercase tracking-widest" style="color: var(--dk-cyan);">Phase 3 · Days 61-90</p>
+              <h4 class="mt-2 font-bold text-lg">Authority Scale</h4>
+              <p class="mt-2 text-sm text-slate-600">Expand content cluster and structured data for AI/organic visibility growth.</p>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <section id="pdp" class="tab-panel space-y-6">
+        <div class="text-center">
+          <h2 class="text-3xl font-bold">Before vs. After: Benefit-First PDP</h2>
+          <p class="mt-2 text-slate-600">Using the live product model for Anti-Theft Heritage Crossbody (Item 33071).</p>
+          <a href="https://calendar.app.google/wo43HPW4Be8DQns99/" target="_blank" rel="noopener noreferrer" class="mt-4 inline-flex items-center rounded-lg px-5 py-2.5 text-sm font-semibold text-white" style="background: var(--dk-navy);">📅 Book Strategy Call</a>
+        </div>
+
+        <div class="flex justify-center gap-3">
+          <button type="button" id="pdp-btn-current" class="px-5 py-2 rounded-full border border-slate-300 font-semibold bg-slate-200 text-slate-700" onclick="setPdpLayout('current')">Current</button>
+          <button type="button" id="pdp-btn-optimized" class="px-5 py-2 rounded-full border border-slate-500 font-semibold bg-white text-slate-700" onclick="setPdpLayout('optimized')">Optimized</button>
+        </div>
+
+        <div class="device-frame shadow-2xl">
+          <div class="p-4 border-b border-slate-200 flex justify-between items-center">
+            <span class="font-bold uppercase tracking-tight" style="color: var(--dk-navy);">Travelon</span>
+            <span class="text-lg">🛒</span>
+          </div>
+
+          <div class="pdp-scroll">
+            <div class="relative bg-slate-100">
+              <img id="pdp-hero-img" class="pdp-product-img" src="travelon-anti-theft-heritage-crossbody.png" alt="Travelon Anti-Theft Heritage Crossbody" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 800 800%22%3E%3Crect fill=%22%23e2e8f0%22 width=%22800%22 height=%22800%22/%3E%3Ctext x=%22400%22 y=%22410%22 text-anchor=%22middle%22 fill=%22%2364748b%22 font-size=%2232%22 font-family=%22system-ui%22%3EProduct image unavailable%3C/text%3E%3C/svg%3E';" />
+              <div id="pdp-security-badge" class="hidden absolute top-4 left-4 bg-[var(--dk-navy)] text-white text-[10px] font-bold px-2 py-1 rounded">LEVEL 5 ANTI-THEFT</div>
+            </div>
+
+            <div class="p-6 space-y-4">
+              <h3 class="text-xl font-bold">Anti-Theft Heritage Crossbody</h3>
+              <p class="text-xs text-slate-500">Item No. 33071</p>
+              <div class="flex items-center gap-2">
+                <span class="text-yellow-500">★★★★★</span>
+                <span class="text-xs text-slate-500">(428 Reviews)</span>
+              </div>
+              <div class="text-2xl font-light">$66.00</div>
+
+              <div id="pdp-current-content" class="space-y-4">
+                <div>
+                  <h4 class="text-xs font-bold uppercase tracking-widest text-slate-500">Product Details</h4>
+                  <p class="mt-2 text-sm text-slate-600 leading-relaxed">Cotton Poly Canvas &amp; Suede construction. Dimensions: 9.5&quot; x 8&quot; x 2.5&quot;. Weight: 0.90 lbs. Strap drop/length up to 53&quot;. Approx. 3L capacity. Includes locking compartments, slash-resistant body panels, cut-resistant strap, lock-down strap and RFID-blocking organizer.</p>
+                </div>
+                <button type="button" class="w-full py-4 rounded-lg text-white font-bold uppercase tracking-widest text-sm" style="background: var(--dk-navy);">Add to Cart</button>
+              </div>
+
+              <div id="pdp-optimized-content" class="hidden space-y-5">
+                <div class="grid grid-cols-3 gap-2 py-4 border-y border-slate-100">
+                  <div class="text-center"><div class="text-xl">🛡️</div><div class="text-[9px] font-bold uppercase mt-1">Slash-Resistant Body</div></div>
+                  <div class="text-center border-x border-slate-100"><div class="text-xl">🔒</div><div class="text-[9px] font-bold uppercase mt-1">Locking Compartments</div></div>
+                  <div class="text-center"><div class="text-xl">📶</div><div class="text-[9px] font-bold uppercase mt-1">RFID Protection</div></div>
+                </div>
+                <p class="text-sm italic text-slate-600">"Classic design with built-in anti-theft confidence for daily use and international travel."</p>
+                <div>
+                  <h4 class="text-xs font-bold uppercase tracking-widest text-slate-700">Why It Converts Better</h4>
+                  <p class="mt-2 text-sm text-slate-600 leading-relaxed">Lead with confidence first: five-point anti-theft protection in a compact crossbody profile. Keep specs accessible, but prioritize benefits that reduce risk perception and improve add-to-cart momentum on mobile.</p>
+                </div>
+              </div>
+            </div>
+
+            <section id="pdp-faq" class="hidden p-6 bg-slate-50 space-y-3">
+              <h4 class="font-bold border-b border-slate-200 pb-2">Common Questions</h4>
+              <details class="text-sm"><summary class="font-semibold cursor-pointer py-1">What are the dimensions and volume?</summary><p class="text-slate-600 pt-2 pl-2">9.5&quot; x 8&quot; x 2.5&quot;, approximately 3 liters.</p></details>
+              <details class="text-sm"><summary class="font-semibold cursor-pointer py-1">What materials are used?</summary><p class="text-slate-600 pt-2 pl-2">Cotton Poly Canvas and Suede with security hardware.</p></details>
+              <details class="text-sm"><summary class="font-semibold cursor-pointer py-1">How does the anti-theft system work?</summary><p class="text-slate-600 pt-2 pl-2">Locking compartments, slash-resistant body panels, cut-resistant strap, lock-down strap, and RFID-blocking organizer pockets.</p></details>
+            </section>
+
+            <div class="h-24"></div>
+          </div>
+
+          <div id="pdp-sticky-atc" class="sticky-atc-wrap hidden">
+            <button type="button" class="w-full py-4 rounded-lg text-white font-bold uppercase tracking-widest text-sm" style="background: var(--dk-navy);">Add to Cart</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="rounded-2xl p-6 sm:p-8 border border-slate-200 bg-white text-center">
+      <h3 class="text-2xl font-bold">Ready to turn this audit into execution?</h3>
+      <p class="mt-2 text-slate-600">Book a strategy call and I will map this directly to your implementation roadmap.</p>
+      <a href="https://calendar.app.google/wo43HPW4Be8DQns99/" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex items-center rounded-lg px-6 py-3 font-semibold text-white" style="background: var(--dk-navy);">Book a Strategy Call</a>
+    </section>
+  </main>
+
+  <div id="book-modal" class="fixed inset-0 bg-black/50 z-[60] items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl text-center">
+      <p class="text-lg font-semibold text-slate-800 mb-2">Ready to move from audit to action?</p>
+      <p class="text-sm text-slate-600 mb-6">Book your strategy call now, or stay and continue exploring.</p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="https://calendar.app.google/wo43HPW4Be8DQns99/" target="_blank" rel="noopener noreferrer" class="inline-flex justify-center items-center px-6 py-3 text-white font-semibold rounded-lg" style="background: var(--dk-navy);">Book a Strategy Call</a>
+        <button type="button" onclick="closeBookModal()" class="inline-flex justify-center items-center px-6 py-3 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50">Stay on page</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="py-10 border-t border-slate-200 text-center text-slate-500 text-xs">
+    Travelon Unified Audit Dashboard | Prepared by Amy Kniss | February 2026
+  </footer>
+
+  <script>
+    let activeTab = 'diagnostic';
+
+    function setActiveTab(tabId) {
+      const tabIds = ['diagnostic', 'dashboard', 'pdp'];
+      if (!tabIds.includes(tabId)) return;
+
+      activeTab = tabId;
+
+      tabIds.forEach((id) => {
+        const panel = document.getElementById(id);
+        const btn = document.getElementById('tab-' + id);
+        if (panel) panel.classList.toggle('active', id === tabId);
+        if (btn) btn.classList.toggle('active', id === tabId);
+      });
+
+      history.replaceState(null, '', '#' + tabId);
+    }
+
+    function setPdpLayout(mode) {
+      const isOptimized = mode === 'optimized';
+      const currentContent = document.getElementById('pdp-current-content');
+      const optimizedContent = document.getElementById('pdp-optimized-content');
+      const faq = document.getElementById('pdp-faq');
+      const badge = document.getElementById('pdp-security-badge');
+      const stickyAtc = document.getElementById('pdp-sticky-atc');
+      const btnCurrent = document.getElementById('pdp-btn-current');
+      const btnOptimized = document.getElementById('pdp-btn-optimized');
+
+      if (isOptimized) {
+        currentContent.classList.add('hidden');
+        optimizedContent.classList.remove('hidden');
+        faq.classList.remove('hidden');
+        badge.classList.remove('hidden');
+        stickyAtc.classList.remove('hidden');
+        btnCurrent.classList.remove('bg-slate-200');
+        btnOptimized.classList.add('bg-slate-900', 'text-white');
+        btnOptimized.classList.remove('bg-white');
+      } else {
+        currentContent.classList.remove('hidden');
+        optimizedContent.classList.add('hidden');
+        faq.classList.add('hidden');
+        badge.classList.add('hidden');
+        stickyAtc.classList.add('hidden');
+        btnCurrent.classList.add('bg-slate-200');
+        btnOptimized.classList.remove('bg-slate-900', 'text-white');
+        btnOptimized.classList.add('bg-white');
+      }
+    }
+
+    function openBookModal() {
+      document.getElementById('book-modal').classList.add('show');
+    }
+
+    function closeBookModal() {
+      document.getElementById('book-modal').classList.remove('show');
+    }
+
+    document.getElementById('mobile-menu-btn').addEventListener('click', function () {
+      document.getElementById('mobile-menu').classList.toggle('open');
+    });
+
+    document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+      anchor.addEventListener('click', function() {
+        document.getElementById('mobile-menu').classList.remove('open');
+      });
+    });
+
+    (function initFromHash() {
+      const hash = location.hash.replace('#', '');
+      if (hash === 'diagnostic' || hash === 'dashboard' || hash === 'pdp') {
+        setActiveTab(hash);
+      }
+    })();
+
+    // Back navigation modal guard.
+    (function() {
+      history.pushState({ auditBack: true }, '', location.href);
+      window.addEventListener('popstate', function() {
+        openBookModal();
+        history.pushState({ auditBack: true }, '', location.href);
+      });
+    })();
+
+    const ctx = document.getElementById('healthRadar').getContext('2d');
+    new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ['Homepage Hero', 'PDP Conversion', 'Best Sellers Logic', 'FAQ Accessibility', 'Mobile Menu', 'Checkout Health', 'Blog Monetization'],
+        datasets: [{
+          label: 'Current Status',
+          data: [65, 50, 40, 30, 45, 35, 45],
+          backgroundColor: 'rgba(64, 116, 197, 0.18)',
+          borderColor: '#4074c5',
+          borderWidth: 2
+        }, {
+          label: '2026 Standard',
+          data: [90, 95, 90, 95, 95, 98, 85],
+          backgroundColor: 'rgba(2, 21, 90, 0.1)',
+          borderColor: '#02155a',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            suggestedMin: 0,
+            suggestedMax: 100,
+            ticks: { display: false },
+            grid: { color: 'rgba(71, 85, 105, 0.2)' }
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { padding: 16, color: '#334155' }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

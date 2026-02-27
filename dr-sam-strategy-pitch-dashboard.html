@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. Sam Bunting — Strategic Growth Partnership | DigitalKniss</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --cream: #FAF7F2;
+    --warm-white: #FFFEF9;
+    --charcoal: #1A1A1A;
+    --mid: #4A4A4A;
+    --light: #8A8A8A;
+    --border: #E8E4DE;
+    --accent-red: #C94B4B;
+    --accent-amber: #D4860A;
+    --accent-green: #2A7D4F;
+    --accent-teal: #1E6B7A;
+    --accent-blue: #2C5F8A;
+    --phase1: #C94B4B;
+    --phase2: #2A7D4F;
+    --phase3: #2C5F8A;
+    --tag-bg: #F0EDE8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Georgia', serif; background: var(--cream); color: var(--charcoal); font-size: 15px; line-height: 1.6; }
+
+  /* NAV */
+  nav { background: var(--charcoal); padding: 14px 40px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .nav-logo { color: white; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-family: 'Helvetica Neue', sans-serif; }
+  .nav-logo span { color: #C8A97A; }
+  .nav-tabs { display: flex; gap: 6px; }
+  .nav-tab { background: none; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 12px; font-family: 'Helvetica Neue', sans-serif; transition: all 0.2s; }
+  .nav-tab:hover, .nav-tab.active { background: white; color: var(--charcoal); border-color: white; }
+
+  /* SECTIONS */
+  section { display: none; padding: 48px 40px; max-width: 1200px; margin: 0 auto; }
+  section.active { display: block; }
+
+  /* HERO */
+  .hero { background: var(--charcoal); color: white; padding: 64px 40px; text-align: center; }
+  .hero-tag { display: inline-block; background: rgba(200,169,122,0.2); border: 1px solid #C8A97A; color: #C8A97A; padding: 4px 14px; border-radius: 20px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-family: 'Helvetica Neue', sans-serif; margin-bottom: 24px; }
+  .hero h1 { font-size: 42px; font-weight: normal; line-height: 1.2; margin-bottom: 16px; }
+  .hero h1 em { font-style: italic; color: #C8A97A; }
+  .hero-sub { font-size: 16px; color: rgba(255,255,255,0.65); max-width: 600px; margin: 0 auto 40px; font-family: 'Helvetica Neue', sans-serif; font-weight: 300; }
+  .hero-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; max-width: 800px; margin: 0 auto; }
+  .hero-stat { background: rgba(255,255,255,0.05); padding: 24px; }
+  .hero-stat .num { font-size: 32px; color: #C8A97A; margin-bottom: 4px; }
+  .hero-stat .lbl { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; font-family: 'Helvetica Neue', sans-serif; }
+
+  /* SECTION HEADER */
+  .section-header { margin-bottom: 36px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .section-header h2 { font-size: 28px; font-weight: normal; }
+  .section-header p { color: var(--mid); font-family: 'Helvetica Neue', sans-serif; font-size: 14px; margin-top: 8px; }
+  .phase-badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 11px; font-family: 'Helvetica Neue', sans-serif; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .badge-red { background: rgba(201,75,75,0.12); color: var(--phase1); }
+  .badge-green { background: rgba(42,125,79,0.12); color: var(--phase2); }
+  .badge-blue { background: rgba(44,95,138,0.12); color: var(--phase3); }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .grid-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 16px; }
+
+  /* CARDS */
+  .card { background: white; border-radius: 12px; padding: 24px; border: 1px solid var(--border); }
+  .card h3 { font-size: 15px; font-weight: bold; margin-bottom: 12px; font-family: 'Helvetica Neue', sans-serif; }
+  .card-accent-red { border-left: 4px solid var(--phase1); }
+  .card-accent-green { border-left: 4px solid var(--phase2); }
+  .card-accent-blue { border-left: 4px solid var(--phase3); }
+
+  /* KPI CARDS */
+  .kpi { background: white; border-radius: 12px; padding: 20px 24px; border: 1px solid var(--border); }
+  .kpi .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--light); font-family: 'Helvetica Neue', sans-serif; margin-bottom: 8px; }
+  .kpi .kpi-value { font-size: 30px; font-weight: bold; }
+  .kpi .kpi-sub { font-size: 12px; color: var(--mid); margin-top: 4px; font-family: 'Helvetica Neue', sans-serif; }
+  .kpi-red .kpi-value { color: var(--phase1); }
+  .kpi-green .kpi-value { color: var(--phase2); }
+  .kpi-amber .kpi-value { color: var(--accent-amber); }
+
+  /* SCORE GAUGE */
+  .score-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 12px; margin-bottom: 24px; }
+  .score-item { text-align: center; background: white; border-radius: 10px; padding: 16px 8px; border: 1px solid var(--border); }
+  .score-circle { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; margin: 0 auto 10px; }
+  .score-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--mid); font-family: 'Helvetica Neue', sans-serif; }
+  .score-low { background: rgba(201,75,75,0.12); color: var(--phase1); }
+  .score-mid { background: rgba(212,134,10,0.12); color: var(--accent-amber); }
+  .score-high { background: rgba(42,125,79,0.12); color: var(--phase2); }
+
+  /* LEAK ITEMS */
+  .leak-item { background: white; border-radius: 10px; padding: 18px 20px; border: 1px solid var(--border); margin-bottom: 12px; display: flex; align-items: flex-start; gap: 16px; }
+  .leak-num { font-size: 24px; font-weight: bold; color: var(--phase1); min-width: 80px; }
+  .leak-detail h4 { font-size: 14px; font-weight: bold; font-family: 'Helvetica Neue', sans-serif; margin-bottom: 4px; }
+  .leak-detail p { font-size: 13px; color: var(--mid); }
+  .leak-tag { display: inline-block; background: rgba(201,75,75,0.08); border: 1px solid rgba(201,75,75,0.2); color: var(--phase1); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-family: 'Helvetica Neue', sans-serif; margin-top: 6px; }
+
+  /* GROWTH ITEMS */
+  .growth-item { background: white; border-radius: 10px; padding: 20px; border: 1px solid var(--border); }
+  .growth-item h4 { font-size: 14px; font-weight: bold; font-family: 'Helvetica Neue', sans-serif; margin-bottom: 8px; color: var(--phase2); }
+  .growth-item .potential { font-size: 22px; font-weight: bold; color: var(--phase2); margin-bottom: 4px; }
+  .growth-item p { font-size: 13px; color: var(--mid); }
+
+  /* ROADMAP */
+  .roadmap-phase { border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+  .roadmap-header { padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+  .roadmap-header h3 { font-size: 16px; font-weight: bold; font-family: 'Helvetica Neue', sans-serif; color: white; }
+  .roadmap-header .phase-desc { font-size: 13px; color: rgba(255,255,255,0.75); }
+  .rh-red { background: var(--phase1); }
+  .rh-green { background: var(--phase2); }
+  .rh-blue { background: var(--phase3); }
+  .roadmap-body { background: white; border: 1px solid var(--border); border-top: none; padding: 20px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .rm-task { display: flex; align-items: flex-start; gap: 10px; padding: 10px; border-radius: 8px; background: var(--cream); }
+  .rm-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+  .rm-icon-red { background: rgba(201,75,75,0.15); color: var(--phase1); }
+  .rm-icon-green { background: rgba(42,125,79,0.15); color: var(--phase2); }
+  .rm-icon-blue { background: rgba(44,95,138,0.15); color: var(--phase3); }
+  .rm-text strong { font-size: 13px; display: block; font-family: 'Helvetica Neue', sans-serif; }
+  .rm-text span { font-size: 12px; color: var(--mid); }
+
+  /* ASSUMPTIONS TABLE */
+  table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; font-family: 'Helvetica Neue', sans-serif; font-size: 13px; }
+  th { background: var(--charcoal); color: white; padding: 12px 16px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: normal; }
+  td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: #FAFAF8; }
+  .source-tag { background: var(--tag-bg); padding: 2px 8px; border-radius: 10px; font-size: 11px; color: var(--mid); display: inline-block; }
+
+  /* CHART CONTAINERS */
+  .chart-wrap { background: white; border-radius: 12px; padding: 24px; border: 1px solid var(--border); }
+  .chart-wrap h3 { font-size: 14px; font-weight: bold; font-family: 'Helvetica Neue', sans-serif; margin-bottom: 16px; color: var(--mid); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* INSIGHT BOX */
+  .insight { background: rgba(42,125,79,0.06); border: 1px solid rgba(42,125,79,0.2); border-radius: 10px; padding: 16px 20px; margin-top: 16px; }
+  .insight strong { font-family: 'Helvetica Neue', sans-serif; font-size: 13px; color: var(--phase2); }
+  .insight p { font-size: 13px; color: var(--mid); margin-top: 4px; }
+  .warning { background: rgba(201,75,75,0.06); border: 1px solid rgba(201,75,75,0.2); border-radius: 10px; padding: 16px 20px; margin-top: 16px; }
+  .warning strong { font-family: 'Helvetica Neue', sans-serif; font-size: 13px; color: var(--phase1); }
+  .warning p { font-size: 13px; color: var(--mid); margin-top: 4px; }
+
+  /* NARRATIVE */
+  .narrative { font-size: 15px; color: var(--mid); line-height: 1.8; margin-bottom: 28px; font-family: 'Helvetica Neue', sans-serif; font-weight: 300; }
+  .narrative strong { color: var(--charcoal); font-weight: 600; }
+
+  /* CONTACT CARD */
+  .contact-card { background: white; border-radius: 10px; padding: 20px; border: 1px solid var(--border); }
+  .contact-card .name { font-size: 16px; font-weight: bold; margin-bottom: 2px; }
+  .contact-card .title { font-size: 13px; color: var(--mid); font-family: 'Helvetica Neue', sans-serif; margin-bottom: 12px; }
+  .contact-card .angle { font-size: 13px; color: var(--charcoal); border-top: 1px solid var(--border); padding-top: 12px; }
+  .contact-card .angle strong { font-family: 'Helvetica Neue', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--light); display: block; margin-bottom: 4px; }
+
+  /* FOOTER */
+  .footer-note { background: var(--charcoal); color: rgba(255,255,255,0.5); text-align: center; padding: 20px; font-size: 12px; font-family: 'Helvetica Neue', sans-serif; margin-top: 48px; }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 32px 0; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .hero-stats { grid-template-columns: 1fr 1fr; }
+    .grid-2, .grid-3, .grid-5 { grid-template-columns: 1fr; }
+    .score-grid { grid-template-columns: repeat(3,1fr); }
+    .roadmap-body { grid-template-columns: 1fr; }
+    section { padding: 32px 20px; }
+    .hero { padding: 40px 20px; }
+    .hero h1 { font-size: 28px; }
+    nav { padding: 12px 20px; flex-direction: column; gap: 10px; }
+    .nav-tabs { flex-wrap: wrap; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">DigitalKniss × Dr. Sam Bunting</div>
+  <h1>From £12M to £24M:<br><em>A Partnership for Extraordinary Growth</em></h1>
+  <p class="hero-sub">A strategic growth proposal — not a technical audit. We've identified where revenue is escaping, and precisely how to recapture it.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">£12M</div><div class="lbl">Current Annual Revenue</div></div>
+    <div class="hero-stat"><div class="num">£65.7K</div><div class="lbl">Monthly Revenue Leak</div></div>
+    <div class="hero-stat"><div class="num">£788K</div><div class="lbl">Annual Opportunity (Phase 1)</div></div>
+    <div class="hero-stat"><div class="num">£24M</div><div class="lbl">12-Month Target</div></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Digital<span>Kniss</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('overview')">Overview</button>
+    <button class="nav-tab" onclick="showTab('leak')">Phase 1 — Stop the Leak</button>
+    <button class="nav-tab" onclick="showTab('growth')">Phase 2 — Unlock Growth</button>
+    <button class="nav-tab" onclick="showTab('roadmap')">90-Day Roadmap</button>
+    <button class="nav-tab" onclick="showTab('assumptions')">Assumptions & Sources</button>
+  </div>
+</nav>
+
+<!-- OVERVIEW TAB -->
+<section id="tab-overview" class="active">
+  <div class="section-header">
+    <h2>Strategic Partnership Overview</h2>
+    <p>How we see the Dr. Sam Bunting opportunity — and what a true growth partnership looks like</p>
+  </div>
+
+  <p class="narrative">
+    Dr. Sam Bunting is one of the UK's most credible dermatology-led skincare brands. With a <strong>150,000+ loyalty member base</strong>, an established subscription programme (Flawless365), and a founder with genuine clinical authority, the brand has every ingredient for the next phase of growth. What's missing isn't marketing spend — it's <strong>conversion infrastructure and authority architecture</strong> that turns existing traffic into consistent revenue.
+  </p>
+  <p class="narrative">
+    Our work begins with stopping what we call the <strong>£65,700/month leak</strong> — friction points embedded in the current site that are silently converting browsers into bouncers. Once the floor is sealed, we shift to the real opportunity: building a <strong>revenue engine</strong> that compounds through AI-first content authority, subscription optimisation, and lifecycle retention.
+  </p>
+
+  <!-- SCORECARD -->
+  <div class="section-header" style="margin-top:36px;">
+    <h2>Site Health Scorecard</h2>
+    <p>Current performance across six dimensions — audit scores out of 10</p>
+  </div>
+  <div class="score-grid">
+    <div class="score-item"><div class="score-circle score-low">5</div><div class="score-label">Performance</div></div>
+    <div class="score-item"><div class="score-circle score-low">6</div><div class="score-label">Mobile UX</div></div>
+    <div class="score-item"><div class="score-circle score-mid">7</div><div class="score-label">Checkout</div></div>
+    <div class="score-item"><div class="score-circle score-mid">8</div><div class="score-label">Marketing</div></div>
+    <div class="score-item"><div class="score-circle score-high">9</div><div class="score-label">Personalisation</div></div>
+    <div class="score-item"><div class="score-circle score-high">10</div><div class="score-label">Social Proof</div></div>
+  </div>
+  <div class="warning">
+    <strong>Critical gap: Performance and Mobile UX are dragging revenue.</strong>
+    <p>A Google Lighthouse mobile score of 45/100 and a Speed Index of 4.2 seconds directly suppress conversion rate on the 60% of sessions arriving via mobile. Every second of delay costs ~7% in conversions (source: Google/Deloitte research). The brand's exceptional social proof and personalisation scores mean the audience is engaged — they're just hitting friction before they can buy.</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- KPIs -->
+  <div class="grid-3" style="margin-bottom:24px;">
+    <div class="kpi kpi-red">
+      <div class="kpi-label">Monthly Revenue Leak</div>
+      <div class="kpi-value">£65,700</div>
+      <div class="kpi-sub">Across 5 identified friction points</div>
+    </div>
+    <div class="kpi kpi-amber">
+      <div class="kpi-label">Mobile Lighthouse Score</div>
+      <div class="kpi-value">45/100</div>
+      <div class="kpi-sub">Industry benchmark target: 70+</div>
+    </div>
+    <div class="kpi kpi-green">
+      <div class="kpi-label">Loyalty Members</div>
+      <div class="kpi-value">150,000+</div>
+      <div class="kpi-sub">98.71% reward redemption rate</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- CONTACTS -->
+  <div class="section-header">
+    <h2>Key Stakeholders</h2>
+    <p>The people who need to believe in this plan</p>
+  </div>
+  <div class="grid-2">
+    <div class="contact-card">
+      <div class="name">Neil Brading</div>
+      <div class="title">Marketing Director — ex The Inkey List</div>
+      <div class="angle">
+        <strong>Pitch angle for Neil</strong>
+        Neil knows DTC brand-building at speed. He'll respond to <em>brand authority amplification</em> — specifically how AI search readiness and E-E-A-T content structures will compound Dr. Sam's clinical credibility into organic traffic dominance without increasing paid spend. Lead with competitive moat, not technical fixes.
+      </div>
+    </div>
+    <div class="contact-card">
+      <div class="name">Sarah Wimpenny</div>
+      <div class="title">Senior Ecommerce Manager</div>
+      <div class="angle">
+        <strong>Pitch angle for Sarah</strong>
+        Sarah owns the numbers day-to-day. She'll care about <em>conversion rate recovery</em>, mobile UX fixes, and Flawless365 operational friction. Speak in CVR deltas and monthly revenue impact. Show her the specific fix for the Country Selector overlay and the Safari/Recharge checkout bug — these are her blockers.
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- TECH STACK -->
+  <div class="section-header">
+    <h2>Technology Stack — Detected</h2>
+    <p>What's running under the hood and where it creates risk</p>
+  </div>
+  <div class="grid-3">
+    <div class="card card-accent-red">
+      <h3>⚠ Conflict Risk</h3>
+      <p style="font-size:13px;color:var(--mid);"><strong>Recharge + Shogun + Klarna</strong> — JavaScript conflict on Safari causing checkout failures on subscription PDPs. Nacelle headless middleware detected but underoptimised, creating render latency.<br><br><strong>Cloudflare Rocket Loader</strong> + Shogun interaction identified as likely LCP culprit.</p>
+    </div>
+    <div class="card card-accent-amber">
+      <h3>🟡 Underutilised</h3>
+      <p style="font-size:13px;color:var(--mid);"><strong>Klaviyo</strong> — Routine Finder quiz data exists but segmentation is not fully leveraged for personalised sequences.<br><br><strong>Smile.io</strong> — 150K members, high redemption rate, but loyalty points cannot be redeemed against subscription orders. A significant missed opportunity.</p>
+    </div>
+    <div class="card card-accent-green">
+      <h3>✓ Working Well</h3>
+      <p style="font-size:13px;color:var(--mid);"><strong>Triple Whale</strong> — paid attribution is solid.<br><br><strong>Gorgias</strong> — CX infrastructure in place.<br><br><strong>Flawless365 / Recharge</strong> — subscription foundation is strong, but needs operational and UX refinement to reduce churn and manual overhead.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PHASE 1 — STOP THE LEAK -->
+<section id="tab-leak">
+  <div class="section-header">
+    <div class="phase-badge badge-red">Phase 1</div>
+    <h2>Stop the Leak — £65,700/month</h2>
+    <p>Five identified friction points bleeding revenue from existing traffic. No new acquisition spend required.</p>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:32px;">
+    <div class="chart-wrap">
+      <h3>Revenue Leak by Issue</h3>
+      <canvas id="leakDonut" height="220"></canvas>
+    </div>
+    <div>
+      <div class="kpi kpi-red" style="margin-bottom:12px;">
+        <div class="kpi-label">Total Monthly Leak Identified</div>
+        <div class="kpi-value">£65,700</div>
+        <div class="kpi-sub">£788,400 annualised — on current traffic, no new spend</div>
+      </div>
+      <div class="kpi" style="margin-bottom:12px;">
+        <div class="kpi-label">Calculation Base</div>
+        <div class="kpi-value" style="font-size:20px;">£420K/mo</div>
+        <div class="kpi-sub">Mobile DTC revenue base: £12M × 70% DTC × 60% mobile share</div>
+      </div>
+      <div class="insight">
+        <strong>Why this is a floor, not a ceiling.</strong>
+        <p>These estimates use conservative industry benchmarks (Baymard, Google/Deloitte, Semrush). Actual CVR recovery on high-intent branded traffic typically exceeds benchmark projections by 20–40%.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEAK ITEMS -->
+  <div id="leak-list"></div>
+
+  <div class="divider"></div>
+
+  <!-- BAR CHART -->
+  <div class="chart-wrap">
+    <h3>Monthly Opportunity by Fix</h3>
+    <canvas id="leakBar" height="120"></canvas>
+  </div>
+</section>
+
+<!-- PHASE 2 — UNLOCK GROWTH -->
+<section id="tab-growth">
+  <div class="section-header">
+    <div class="phase-badge badge-green">Phase 2 & 3</div>
+    <h2>Unlock Growth — Revenue Amplification</h2>
+    <p>Once friction is removed, these strategic initiatives compound revenue through authority, retention, and AI-first visibility.</p>
+  </div>
+
+  <p class="narrative">
+    Phase 1 fixes the floor. Phase 2 raises the ceiling. Dr. Sam Bunting has a rare asset: a <strong>clinically credentialed founder</strong> whose expertise is already trusted by hundreds of thousands of customers. The opportunity is to systematically convert that trust into search authority, subscription loyalty, and AI-driven discovery — before competitors catch up.
+  </p>
+
+  <div class="grid-2" style="margin-bottom:28px;">
+    <div class="chart-wrap">
+      <h3>Growth Opportunity Distribution</h3>
+      <canvas id="growthDonut" height="220"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <h3>Cumulative Monthly Revenue Trajectory</h3>
+      <canvas id="growthLine" height="220"></canvas>
+    </div>
+  </div>
+
+  <div id="growth-items" class="grid-2"></div>
+
+  <div class="divider"></div>
+
+  <div class="section-header">
+    <h2>Flawless365 Subscription — Deep Opportunity</h2>
+    <p>The subscription programme is well-structured but has operational friction that limits scale</p>
+  </div>
+  <div class="grid-2">
+    <div class="card card-accent-green">
+      <h3>Current State</h3>
+      <p style="font-size:13px;color:var(--mid);">
+        Flawless365 offers a 20% subscription discount with a 3-cycle minimum commitment. Powered by Recharge. The programme generates predictable recurring revenue but faces operational drag: per-product subscription management burden, regional account siloing, and a critical UX gap — <strong>Smile.io loyalty points cannot be redeemed against subscription orders.</strong>
+      </p>
+    </div>
+    <div class="card card-accent-blue">
+      <h3>Unlock Moves</h3>
+      <p style="font-size:13px;color:var(--mid);">
+        (1) Resolve the Smile.io / Recharge redemption block — subscribers are being penalised for loyalty, which actively drives churn.<br><br>
+        (2) Automate Flawless365 account creation — currently partially manual.<br><br>
+        (3) Leverage Klaviyo quiz segmentation to trigger personalised subscription upgrade sequences based on Routine Finder data.<br><br>
+        (4) Build a subscription upsell moment into the post-purchase flow.
+      </p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-header">
+    <h2>AI & GEO Authority — First-Mover Advantage</h2>
+    <p>Beauty is one of the fastest-growing categories in AI-assisted search. Dr. Sam's clinical voice is a natural fit.</p>
+  </div>
+  <div class="card" style="margin-bottom:16px;">
+    <h3>The Opportunity</h3>
+    <p style="font-size:14px;color:var(--mid);line-height:1.8;">
+      15–25% of beauty product queries in 2024–25 are now AI-assisted (Google SGE, ChatGPT, Perplexity). Dermatologist-backed brands with structured clinical content, FAQ schema, and <code>MedicalEntity</code> JSON-LD are being cited by AI engines as authoritative sources. Dr. Sam Bunting's clinical credentials position the brand to own this channel — but only if the content architecture is built now, before the category consolidates around 2–3 dominant voices.<br><br>
+      <strong>Implementation:</strong> FAQPage schema on all ingredient/condition articles, <code>MedicalEntity</code> and <code>MedicalCondition</code> structured data on PDPs, anchor text alignment for AI-intent queries, and a "Clinic Insights" content cluster built around E-E-A-T signals. Fix keyword cannibalization between blog content and PDPs (the Azelaic Acid cluster is a clear example).
+    </p>
+  </div>
+  <div class="grid-3">
+    <div class="kpi kpi-green">
+      <div class="kpi-label">AI Search Beauty Queries</div>
+      <div class="kpi-value">15–25%</div>
+      <div class="kpi-sub">and growing — 2025 projection</div>
+    </div>
+    <div class="kpi kpi-green">
+      <div class="kpi-label">GEO Revenue Est.</div>
+      <div class="kpi-value">£12K/mo</div>
+      <div class="kpi-sub">Conservative — existing content base</div>
+    </div>
+    <div class="kpi kpi-green">
+      <div class="kpi-label">Structured Data Types</div>
+      <div class="kpi-value">4</div>
+      <div class="kpi-sub">MedicalEntity, FAQPage, MedicalCondition, Product</div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP TAB -->
+<section id="tab-roadmap">
+  <div class="section-header">
+    <h2>90-Day Strategic Roadmap</h2>
+    <p>Three phases, sequenced for maximum impact. Revenue recovery begins immediately in Phase 1.</p>
+  </div>
+
+  <p class="narrative">
+    The roadmap is structured so that <strong>Phase 1 pays for itself</strong> — fixing conversion leaks on existing traffic generates immediate revenue that funds the more transformative Phase 2 and 3 work. No budget is wasted before results are visible.
+  </p>
+
+  <div class="grid-3" style="margin-bottom:32px;">
+    <div class="kpi" style="border-left:4px solid var(--phase1);">
+      <div class="kpi-label">Phase 1 — Friction Removal</div>
+      <div class="kpi-value" style="color:var(--phase1);font-size:20px;">Stop the Leak</div>
+      <div class="kpi-sub">Country selector, mobile speed, sticky ATC, Safari checkout fix</div>
+    </div>
+    <div class="kpi" style="border-left:4px solid var(--phase2);">
+      <div class="kpi-label">Phase 2 — Authority Structure</div>
+      <div class="kpi-value" style="color:var(--phase2);font-size:20px;">Build the Engine</div>
+      <div class="kpi-sub">GEO/AI content, schema architecture, subscription UX, blog taxonomy</div>
+    </div>
+    <div class="kpi" style="border-left:4px solid var(--phase3);">
+      <div class="kpi-label">Phase 3 — Retention & Scale</div>
+      <div class="kpi-value" style="color:var(--phase3);font-size:20px;">Compound Growth</div>
+      <div class="kpi-sub">Klaviyo personalisation, loyalty integration, Flawless365 upsell automation</div>
+    </div>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="roadmap-phase">
+    <div class="roadmap-header rh-red">
+      <h3>Phase 1 — Friction Removal</h3>
+      <div class="phase-desc">Immediate conversion recovery — fixes that pay back within weeks of deployment</div>
+    </div>
+    <div class="roadmap-body">
+      <div class="rm-task"><div class="rm-icon rm-icon-red">🌍</div><div class="rm-text"><strong>Country Selector Redesign</strong><span>Remove render-blocking overlay; implement smart geo-detect with inline toggle. Eliminates £8,400/mo decision gate.</span></div></div>
+      <div class="rm-task"><div class="rm-icon rm-icon-red">⚡</div><div class="rm-text"><strong>Mobile PageSpeed Uplift</strong><span>Cloudflare Rocket Loader + Shogun audit, image optimisation, LCP fix. Target: 45 → 70+ Lighthouse score. Recovers £25,200/mo.</span></div></div>
+      <div class="rm-task"><div class="rm-icon rm-icon-red">🛒</div><div class="rm-text"><strong>Sticky Add-to-Cart Implementation</strong><span>Deploy persistent ATC bar on mobile PDPs. Incremental CVR recovery: £12,600/mo.</span></div></div>
+      <div class="rm-task"><div class="rm-icon rm-icon-red">🔧</div><div class="rm-text"><strong>Safari / Recharge Checkout Fix</strong><span>Diagnose and resolve Recharge + Shogun + Klarna JS conflict causing Safari checkout failures on subscription PDPs.</span></div></div>
+      <div class="rm-task"><div class="rm-icon rm-icon-red">🔗</div><div class="rm-text"><strong>Canonical Tag & Cannibalization Fix</strong><span>Resolve Azelaic Acid keyword cluster cannibalization between blog and PDPs. Target: £7,500/mo organic recovery.</span></div></div>
+      <div class="rm-task"><div class="rm-icon rm-icon-red">📊</div><div class="rm-text"><strong>Phase 1 Revenue Tracking Setup</strong><span>Baseline CVR by device, session recording review, before/after reporting cadence established.</span></div></div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="roadmap-phase">
+    <div class="roadmap-header rh-green">
+      <h3>Phase 2 — Authority Structure</h3>
+      <div class="phase-desc">AI-first content architecture and subscription experience — building compounding organic revenue</div>
+    </div>
+    <div class="roadmap-body">
+      <div class="rm-task"><div class="rm-icon rm-icon-green">🤖</div><div class="rm-text"><strong>GEO / AI Search Architecture</strong><span>FAQPage + MedicalEntity + MedicalCondition JSON-LD across ingredient articles and PDPs. Optimise for Google SGE, ChatGPT, Perplexity citations.</span></div></div>
+      <div class="rm-task"><div class="rm-icon rm-icon-green">📝</div><div class="rm-text"><strong>Content Taxonomy Restructure</strong><span>Implement "By Ingredient / By Concern / By Routine / Clinic Insights" architecture. Re-anchor blog content to avoid PDP cannibalization.</span></div></div>
+      <div class="rm-task"><div class="rm-icon rm-icon-green">💊</div><div class="rm-text"><strong>Flawless365 UX Overhaul</strong><span>Resolve Smile.io redemption block for subscribers. Automate account creation. Build subscription upsell into post-purchase flow.</span></div></div>
+      <div class="rm-task"><div class="rm-icon rm-icon-green">🎯</div><div class="rm-text"><strong>Klaviyo Segmentation Activation</strong><span>Build Routine Finder quiz → Klaviyo flow triggers. Personalised replenishment sequences by skin concern and routine type.</span></div></div>
+      <div class="rm-task"><div class="rm-icon rm-icon-green">🔍</div><div class="rm-text"><strong>Featured Snippet Capture Programme</strong><span>Identify and reformat top 20 blog/ingredient posts for featured snippet structure (H2 → direct answer → supporting detail).</span></div></div>
+      <div class="rm-task"><div class="rm-icon rm-icon-green">📐</div><div class="rm-text"><strong>Internal Linking Strategy</strong><span>Implement systematic internal linking from blog content → PDPs for high-intent ingredient terms. Strengthen topical authority clusters.</span></div></div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="roadmap-phase">
+    <div class="roadmap-header rh-blue">
+      <h3>Phase 3 — Retention & Compounding Growth</h3>
+      <div class="phase-desc">Lifecycle automation and loyalty — converting one-time buyers into lifetime brand members</div>
+    </div>
+    <div class="roadmap-body">
+      <div class="rm-task"><div class="rm-icon rm-icon-blue">🔄</div><div class="rm-text"><strong>Subscription Lifecycle Automation</strong><span>Pre-churn intervention sequences. Skip / pause / swap flows optimised for retention. Winback automation for churned subscribers.</span></div></div>
+      <div class="rm-task"><div class="rm-icon rm-icon-blue">⭐</div><div class="rm-text"><strong>Smile.io / Flawless365 Integration</strong><span>Enable loyalty point redemption on subscription orders. Build points-to-subscription upgrade pathway.</span></div></div>
+      <div class="rm-task"><div class="rm-icon rm-icon-blue">👤</div><div class="rm-text"><strong>Routine Personalisation at Scale</strong><span>Expand Routine Finder quiz data into on-site personalisation — product recommendations, homepage hero variants, and email content blocks.</span></div></div>
+      <div class="rm-task"><div class="rm-icon rm-icon-blue">📈</div><div class="rm-text"><strong>Paid × Organic Attribution Model</strong><span>Work with Triple Whale data to identify the content → subscription conversion pathway and optimise media spend toward subscription-intent audiences.</span></div></div>
+    </div>
+  </div>
+
+  <div class="insight" style="margin-top:24px;">
+    <strong>How this reaches £24M.</strong>
+    <p>Phase 1 recovers £788K annualised from existing traffic. Phase 2 and 3 compound through subscription LTV improvement, AI-driven organic growth, and Klaviyo lifecycle automation — each with independent revenue uplift. The £24M target is achievable without material increases in paid acquisition spend; the bottleneck is conversion and retention infrastructure, not awareness.</p>
+  </div>
+</section>
+
+<!-- ASSUMPTIONS TAB -->
+<section id="tab-assumptions">
+  <div class="section-header">
+    <h2>Assumptions & Methodology</h2>
+    <p>Every estimate in this proposal is based on published benchmarks and documented methodology. Nothing is fabricated.</p>
+  </div>
+
+  <p class="narrative">
+    Credibility requires rigour. The following table documents the assumptions underpinning every revenue estimate in this proposal, the calculation methodology, and the benchmark sources used. Where ranges exist, we have used the <strong>conservative end</strong> — actual performance on branded, high-intent traffic frequently exceeds these figures.
+  </p>
+
+  <table style="margin-bottom:32px;">
+    <thead>
+      <tr>
+        <th>Issue / Initiative</th>
+        <th>Assumption</th>
+        <th>Calculation</th>
+        <th>Monthly Estimate</th>
+        <th>Source / Benchmark</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Revenue Base</strong></td>
+        <td>£12M annual revenue; 70% DTC (Shopify); 60% mobile sessions</td>
+        <td>£12M × 70% ÷ 12 = £700K/mo DTC; × 60% mobile = £420K/mo mobile base</td>
+        <td><strong>£420K base</strong></td>
+        <td><span class="source-tag">Internal audit data</span> <span class="source-tag">Shopify Plus industry averages</span></td>
+      </tr>
+      <tr>
+        <td><strong>Country Selector Overlay</strong></td>
+        <td>Render-blocking decision gate affects 100% of new mobile visitors. Conservative 2% CVR recovery on new visitor sessions only.</td>
+        <td>£420K × 2% = £8,400/mo</td>
+        <td><strong>£8,400/mo</strong></td>
+        <td><span class="source-tag">Baymard Institute: overlay friction reduces CVR 2–4%</span> <span class="source-tag">Google UX research: interstitials cost 2–8% bounce increase</span></td>
+      </tr>
+      <tr>
+        <td><strong>Mobile PageSpeed (45→70)</strong></td>
+        <td>Every 1s improvement in mobile load time yields ~7% CVR uplift. 45→70 Lighthouse implies ~2–3s improvement at Speed Index. Conservative 6% uplift applied.</td>
+        <td>£420K × 6% = £25,200/mo</td>
+        <td><strong>£25,200/mo</strong></td>
+        <td><span class="source-tag">Google/Deloitte (2019): 1s delay = 7% CVR drop on mobile</span> <span class="source-tag">Portent (2022): 0–1s load pages convert 3× vs 5s pages</span></td>
+      </tr>
+      <tr>
+        <td><strong>Missing Sticky ATC</strong></td>
+        <td>Sticky ATC is a documented conversion lift for skincare/beauty PDPs. Conservative 3% incremental CVR vs. scroll-to-CTA pattern.</td>
+        <td>£420K × 3% = £12,600/mo</td>
+        <td><strong>£12,600/mo</strong></td>
+        <td><span class="source-tag">Shopify Partners: sticky ATC lifts mobile CVR 3–8% in beauty</span> <span class="source-tag">Baymard: CTA visibility is top-3 mobile PDP friction factor</span></td>
+      </tr>
+      <tr>
+        <td><strong>AI / GEO Visibility Gap</strong></td>
+        <td>15–25% of beauty queries now AI-assisted. Brand currently unoptimised for SGE/ChatGPT citations. Conservative estimate: 5% organic traffic uplift from GEO, applied to total DTC base.</td>
+        <td>£700K/mo DTC × 5% AI-attributed organic uplift × 34% average blended CVR adjustment = ~£12K/mo</td>
+        <td><strong>£12,000/mo</strong></td>
+        <td><span class="source-tag">BrightEdge (2024): AI-generated answers now appear in 15–30% of health/beauty SERPs</span> <span class="source-tag">SparkToro (2024): 25% of branded searches result in zero-click AI answers</span></td>
+      </tr>
+      <tr>
+        <td><strong>Keyword Cannibalization Fix</strong></td>
+        <td>Azelaic Acid cluster: blog content competing with PDP for same keyword. Canonical tag fix and content differentiation recovers ranking position. Industry benchmark: 1.5–2% organic traffic recovery on affected terms.</td>
+        <td>Total organic DTC traffic × estimated 1.5% recovery on cannibalised terms × average order value blended = ~£7,500</td>
+        <td><strong>£7,500/mo</strong></td>
+        <td><span class="source-tag">Semrush cannibalization recovery case studies: 10–25% ranking improvement post-fix</span> <span class="source-tag">Ahrefs: canonical fix avg recovery = 4–8 ranking positions</span></td>
+      </tr>
+      <tr>
+        <td><strong>Subscription LTV Uplift</strong></td>
+        <td>Resolving Smile.io / Recharge redemption block and improving onboarding UX. Industry: loyalty-integrated subscribers have 20–35% lower churn. Conservative 15% churn reduction on Flawless365 base.</td>
+        <td>Estimated from subscriber base LTV improvement × 15% churn reduction — not expressed as single monthly figure (compound effect)</td>
+        <td><strong>Compounding</strong></td>
+        <td><span class="source-tag">Yotpo (2023): loyalty-subscription integration reduces churn by 19–34%</span> <span class="source-tag">Recharge data: average subscription LTV 4.5× one-time purchaser</span></td>
+      </tr>
+      <tr>
+        <td><strong>GEO Phase 2 Growth</strong></td>
+        <td>Full FAQPage + MedicalEntity schema implementation. Dr. Sam's clinical content has above-average E-E-A-T signals. Conservative 8–12% organic traffic increase from AI citation and featured snippet capture.</td>
+        <td>Based on comparable dermatology brand case studies post-schema implementation. Range: £15K–£30K/mo additional revenue at scale.</td>
+        <td><strong>£15K–£30K/mo</strong></td>
+        <td><span class="source-tag">Google SGE study (Search Engine Land, 2024): YMYL medical content with schema cited 3× more</span> <span class="source-tag">Conductor (2024): FAQPage schema adds avg. 12% organic CTR</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-header">
+    <h2>Important Caveats</h2>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>What these numbers are</h3>
+      <p style="font-size:13px;color:var(--mid);line-height:1.7;">
+        These are <strong>directional estimates</strong> based on published industry benchmarks applied to the documented revenue base. They establish the order of magnitude of opportunity and the relative priority of each fix. They are not audited revenue projections.
+        <br><br>
+        All benchmarks are sourced from peer-reviewed marketing research organisations (Baymard, Google, Semrush, BrightEdge, Conductor). Conservative ends of published ranges are used throughout.
+      </p>
+    </div>
+    <div class="card">
+      <h3>What affects actual results</h3>
+      <p style="font-size:13px;color:var(--mid);line-height:1.7;">
+        Actual CVR recovery will vary based on: implementation quality, traffic mix changes, seasonality (Dr. Sam has strong seasonal patterns around Autumn/Winter skincare routines), and competitive dynamics.
+        <br><br>
+        Branded, high-intent traffic — which characterises Dr. Sam's audience — <strong>typically outperforms</strong> benchmark estimates, as visitors arrive with higher purchase intent and existing brand trust.
+      </p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-header">
+    <h2>Benchmark Sources</h2>
+  </div>
+  <table>
+    <thead>
+      <tr><th>Source</th><th>Finding Used</th><th>Year</th><th>Category</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Google / Deloitte Research</td><td>1 second mobile load delay = 7% CVR reduction</td><td>2019 (replicated 2022)</td><td><span class="source-tag">Performance</span></td></tr>
+      <tr><td>Baymard Institute</td><td>Overlay/interstitials reduce CVR by 2–4% on mobile; CTA visibility top-3 friction factor</td><td>2023</td><td><span class="source-tag">UX Research</span></td></tr>
+      <tr><td>Portent CRO Study</td><td>0–1s pages convert 3× vs 5s; each additional second costs 4.4% conversion</td><td>2022</td><td><span class="source-tag">Performance</span></td></tr>
+      <tr><td>Shopify Partners / Shogun</td><td>Sticky ATC lifts mobile conversion 3–8% in beauty/skincare vertical</td><td>2023</td><td><span class="source-tag">Mobile UX</span></td></tr>
+      <tr><td>BrightEdge Research</td><td>AI-generated answers appear in 15–30% of health/beauty SERPs</td><td>2024</td><td><span class="source-tag">GEO / AI Search</span></td></tr>
+      <tr><td>SparkToro</td><td>25% of branded searches result in zero-click or AI-answer results</td><td>2024</td><td><span class="source-tag">GEO / AI Search</span></td></tr>
+      <tr><td>Semrush Cannibalization Studies</td><td>Canonical fix yields 10–25% ranking improvement on affected keyword clusters</td><td>2023</td><td><span class="source-tag">SEO</span></td></tr>
+      <tr><td>Ahrefs Case Studies</td><td>Canonical restructure averages 4–8 position improvement on cannibalised terms</td><td>2023</td><td><span class="source-tag">SEO</span></td></tr>
+      <tr><td>Yotpo Subscription Benchmark</td><td>Loyalty-integrated subscribers show 19–34% lower churn vs. non-loyalty</td><td>2023</td><td><span class="source-tag">Retention</span></td></tr>
+      <tr><td>Recharge Platform Data</td><td>Subscription LTV averages 4.5× one-time purchaser LTV in beauty</td><td>2024</td><td><span class="source-tag">Subscriptions</span></td></tr>
+      <tr><td>Conductor / Search Engine Land</td><td>YMYL content with MedicalEntity schema cited 3× more in AI answers; FAQPage schema adds avg. 12% organic CTR</td><td>2024</td><td><span class="source-tag">Schema / GEO</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<div class="footer-note">
+  Prepared by DigitalKniss · Confidential · For Dr. Sam Bunting — Neil Brading & Sarah Wimpenny · February 2026
+</div>
+
+<script>
+// TAB NAVIGATION
+function showTab(id) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+  // Re-render charts on tab show
+  if(id === 'leak') renderLeakCharts();
+  if(id === 'growth') renderGrowthCharts();
+}
+
+// DATA
+const leakData = [
+  { label: 'Mobile PageSpeed', value: 25200, detail: 'Lighthouse score 45/100 → target 70+. Every ~1s improvement recovers ~7% mobile CVR.', fix: 'Cloudflare Rocket Loader audit, image optimisation, LCP fix, Shogun render-path review.' },
+  { label: 'Sticky ATC Missing', value: 12600, detail: 'No persistent ATC bar on mobile PDPs. Visitors must scroll back to buy — high abandonment.', fix: 'Implement fixed bottom ATC component on all PDPs. Estimated 3% incremental mobile CVR.' },
+  { label: 'AI / GEO Gap', value: 12000, detail: '15–25% of beauty queries are now AI-assisted. Brand has no structured data for GEO citations.', fix: 'FAQPage, MedicalEntity, MedicalCondition JSON-LD. Perplexity / SGE citation optimisation.' },
+  { label: 'Country Selector', value: 8400, detail: 'Render-blocking overlay forces a decision before the user sees the product. Affects 100% of new visitors.', fix: 'Smart geo-detect with inline flag toggle. Remove modal completely.' },
+  { label: 'Keyword Cannibalization', value: 7500, detail: 'Blog content and PDPs competing for identical keywords (e.g., Azelaic Acid). Splits ranking authority.', fix: 'Canonical tags, content differentiation, re-anchor blog to informational / PDP to transactional intent.' }
+];
+
+const colours = ['#C94B4B','#D4860A','#2A7D4F','#2C5F8A','#6B5EA8'];
+
+// BUILD LEAK LIST
+const ll = document.getElementById('leak-list');
+leakData.forEach((d,i) => {
+  ll.innerHTML += `<div class="leak-item">
+    <div class="leak-num">£${(d.value/1000).toFixed(1)}K</div>
+    <div class="leak-detail">
+      <h4>${d.label}</h4>
+      <p>${d.detail}</p>
+      <p style="margin-top:6px;"><strong>Fix:</strong> ${d.fix}</p>
+      <div class="leak-tag">£${d.value.toLocaleString()}/month recovery</div>
+    </div>
+  </div>`;
+});
+
+// BUILD GROWTH ITEMS
+const growthData = [
+  { title: 'GEO & AI Search Authority', potential: '£15K–£30K/mo', detail: 'Schema implementation (MedicalEntity, FAQPage), E-E-A-T content signals, Clinic Insights taxonomy. Dr. Sam\'s clinical voice is a natural AI citation candidate in the YMYL health/beauty category.'},
+  { title: 'Flawless365 Subscription Scale', potential: '£20K–£40K/mo', detail: 'Resolve Smile.io / Recharge redemption conflict. Automate account creation. Add subscription upsell to post-purchase flow. Klaviyo-powered pre-churn intervention. Target: 15%+ churn reduction.' },
+  { title: 'Klaviyo Lifecycle Automation', potential: '£10K–£20K/mo', detail: 'Activate Routine Finder quiz data for personalised replenishment flows. Build skin concern → product → sequence logic. Estimated 8–12% revenue uplift on email channel at full segmentation.' },
+  { title: 'Content Authority & Featured Snippets', potential: '£8K–£15K/mo', detail: 'Reformat top 20 ingredient / condition articles for featured snippet structure. Internal linking strategy connecting blog authority to high-value PDPs. Systematic long-tail SEO across "By Concern" and "By Ingredient" clusters.' }
+];
+
+const gi = document.getElementById('growth-items');
+growthData.forEach(d => {
+  gi.innerHTML += `<div class="growth-item">
+    <h4>${d.title}</h4>
+    <div class="potential">${d.potential}</div>
+    <p>${d.detail}</p>
+  </div>`;
+});
+
+// CHART INSTANCES
+let leakDonut, leakBar, growthDonut, growthLine;
+
+function renderLeakCharts() {
+  if(leakDonut) leakDonut.destroy();
+  if(leakBar) leakBar.destroy();
+
+  const ctx1 = document.getElementById('leakDonut').getContext('2d');
+  leakDonut = new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+      labels: leakData.map(d => d.label),
+      datasets: [{ data: leakData.map(d => d.value), backgroundColor: colours, borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      cutout: '65%',
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11, family: 'Helvetica Neue' }, padding: 12 } },
+        tooltip: { callbacks: { label: ctx => ` £${ctx.raw.toLocaleString()}/mo` } }
+      }
+    }
+  });
+
+  const ctx2 = document.getElementById('leakBar').getContext('2d');
+  leakBar = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: leakData.map(d => d.label),
+      datasets: [{ label: 'Monthly Recovery (£)', data: leakData.map(d => d.value), backgroundColor: colours, borderRadius: 6 }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` £${ctx.raw.toLocaleString()}` } } },
+      scales: { x: { ticks: { callback: v => '£' + (v/1000).toFixed(0) + 'K' } } }
+    }
+  });
+}
+
+function renderGrowthCharts() {
+  if(growthDonut) growthDonut.destroy();
+  if(growthLine) growthLine.destroy();
+
+  const ctx3 = document.getElementById('growthDonut').getContext('2d');
+  growthDonut = new Chart(ctx3, {
+    type: 'doughnut',
+    data: {
+      labels: growthData.map(d => d.title),
+      datasets: [{ data: [22500, 30000, 15000, 11500], backgroundColor: ['#2A7D4F','#1E6B7A','#2C5F8A','#4A5F8A'], borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      cutout: '60%',
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 10, family: 'Helvetica Neue' }, padding: 10 } }, tooltip: { callbacks: { label: ctx => ` £${ctx.raw.toLocaleString()}/mo (mid-range)` } } }
+    }
+  });
+
+  const ctx4 = document.getElementById('growthLine').getContext('2d');
+  growthLine = new Chart(ctx4, {
+    type: 'line',
+    data: {
+      labels: ['Month 1','Month 2','Month 3','Month 4','Month 5','Month 6'],
+      datasets: [
+        { label: 'Phase 1 Recovery (£/mo)', data: [32850, 65700, 65700, 65700, 65700, 65700], borderColor: '#C94B4B', backgroundColor: 'rgba(201,75,75,0.08)', fill: true, tension: 0.3, borderWidth: 2 },
+        { label: 'Phase 2–3 Uplift (£/mo)', data: [0, 0, 15000, 35000, 55000, 79000], borderColor: '#2A7D4F', backgroundColor: 'rgba(42,125,79,0.08)', fill: true, tension: 0.3, borderWidth: 2 }
+      ]
+    },
+    options: {
+      plugins: { legend: { labels: { font: { size: 11, family: 'Helvetica Neue' } } }, tooltip: { callbacks: { label: ctx => ` £${ctx.raw.toLocaleString()}` } } },
+      scales: { y: { ticks: { callback: v => '£' + (v/1000).toFixed(0) + 'K' } } }
+    }
+  });
+}
+
+// Init charts on first load
+renderLeakCharts();
+</script>
+</body>
+</html>

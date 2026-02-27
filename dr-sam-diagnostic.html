@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Sam's | Digital Performance Diagnostic 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .chart-container { position: relative; width: 100%; height: 380px; }
+        .phase-card {
+            border-left: 3px solid transparent;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+        .phase-card:hover { transform: translateX(5px); }
+        .phase-card.phase-1 { border-left-color: #dc2626; }
+        .phase-card.phase-2 { border-left-color: #2563eb; }
+        .phase-card.phase-3 { border-left-color: #16a34a; }
+        .phase-card.active { box-shadow: 0 0 0 2px rgba(0,0,0,0.1); }
+        .leak-number {
+            background: linear-gradient(135deg, #7c3aed, #dc2626);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-card {
+            background: white;
+            border: 1px solid #f1f5f9;
+            border-radius: 16px;
+            padding: 24px;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .keyword-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 100px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            margin: 4px;
+        }
+        .detail-panel {
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        .detail-panel.visible {
+            display: block;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .progress-bar {
+            height: 6px;
+            border-radius: 100px;
+            background: #f1f5f9;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 100px;
+            transition: width 1s ease;
+        }
+        .ai-query {
+            background: #fafafa;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #374151;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .highlight-word {
+            background: linear-gradient(135deg, #ede9fe, #fce7f3);
+            border-radius: 4px;
+            padding: 0 4px;
+            font-weight: 600;
+        }
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+            margin: 80px 0;
+        }
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .nav-dot.active { background: #1e293b; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased">
+
+    <!-- Sticky Nav -->
+    <nav class="bg-white/90 backdrop-blur-sm border-b border-slate-100 sticky top-0 z-50 px-6 lg:px-12 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <img src="data:image/png;base64,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" class="h-8 w-auto" alt="DigitalKniss" />
+            <span class="text-sm font-semibold tracking-tight">Dr. Sam's <span class="text-slate-400 font-light">| Performance Diagnostic</span></span>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden sm:flex items-center gap-2 bg-red-50 border border-red-100 text-red-600 rounded-full px-4 py-1.5">
+                <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <span class="text-[11px] font-bold uppercase tracking-widest">Est. Revenue Leak: €78,800/mo</span>
+            </div>
+            <span class="text-[10px] text-slate-400 uppercase tracking-widest hidden lg:block">Feb 2026</span>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-6 lg:px-8 py-16 space-y-24">
+
+        <!-- HERO SECTION -->
+        <section class="grid lg:grid-cols-2 gap-16 items-center">
+            <div class="space-y-8">
+                <div class="inline-flex items-center gap-2 bg-violet-50 text-violet-600 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wider border border-violet-100">
+                    Clinical Authority Brand · Technical Growth Gap
+                </div>
+                <h1 class="text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight">
+                    The Authority Gap<br>
+                    <span class="text-slate-400 font-light">is costing you</span><br>
+                    <span class="leak-number">~€79k/month.</span>
+                </h1>
+                <p class="text-lg text-slate-500 leading-relaxed max-w-md">
+                    Dr. Sam's clinical credibility is a <strong class="text-slate-900">9/10</strong>. The digital infrastructure that should be monetizing it is a <strong class="text-slate-900">5/10</strong>. Five fixable gaps are preventing the brand from converting the demand it has already earned.
+                </p>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="stat-card text-center">
+                        <div class="text-3xl font-black">45</div>
+                        <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-1">Mobile Score</div>
+                        <div class="text-[10px] text-red-500 mt-1">vs. 70+ required</div>
+                    </div>
+                    <div class="stat-card text-center">
+                        <div class="text-3xl font-black text-violet-600">0%</div>
+                        <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-1">AI Citations</div>
+                        <div class="text-[10px] text-red-500 mt-1">for product pages</div>
+                    </div>
+                    <div class="stat-card text-center">
+                        <div class="text-3xl font-black text-blue-600">60%</div>
+                        <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-1">Traffic Mobile</div>
+                        <div class="text-[10px] text-slate-400 mt-1">underperforming</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card !p-6">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">Health Radar: Current vs. 2026 Standard</div>
+                <div class="chart-container">
+                    <canvas id="healthRadar"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- REVENUE LEAK BREAKDOWN -->
+        <section class="space-y-12">
+            <div class="max-w-2xl">
+                <div class="text-xs font-bold text-red-500 uppercase tracking-widest mb-3">Where the Money Is Going</div>
+                <h2 class="text-4xl font-black tracking-tight">~€78,800 leaves every month.<br><span class="text-slate-400 font-light">Here's exactly where.</span></h2>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Leak Item 1 -->
+                <div class="stat-card cursor-pointer" onclick="toggleLeak('country')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-500 font-black text-sm">01</div>
+                            <div>
+                                <div class="font-bold text-sm">Country Selector Overlay</div>
+                                <div class="text-xs text-slate-400 mt-0.5">Render-blocking full-screen gate firing before page paint</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xl font-black text-red-600">€10,080</div>
+                            <div class="text-[10px] text-slate-400 uppercase">/month est.</div>
+                        </div>
+                    </div>
+                    <div id="leak-country" class="detail-panel mt-4 pt-4 border-t border-slate-100 text-sm text-slate-600 leading-relaxed">
+                        <p>The full-screen country selector fires <strong>before</strong> the homepage fully paints — it's the first thing 100% of new visitors encounter. This forces a decision from someone who hasn't yet seen a product or understood the brand. Industry data shows this type of overlay increases bounce rate by 12–18% in the first session. At your mobile traffic volume (~60% of sessions), this renders a meaningful share of mobile visits unconverted before any product interaction occurs. The fix: replace with geo-IP auto-detection and a subtle header flag.</p>
+                        <p class="mt-3 text-xs text-slate-400 bg-slate-50 rounded-lg p-3"><strong class="text-slate-600">How this is calculated:</strong> Base = €14.4M annual revenue (£12M × 1.20) × 70% DTC channel × 60% mobile traffic ÷ 12 months = <strong class="text-slate-600">€504,000/month mobile base</strong>. Industry benchmark: render-blocking full-screen overlay drives 12–18% bounce increase. Conservative net CVR recovery modeled at 2% = €504,000 × 2% = <strong class="text-slate-600">€10,080/month</strong>.</p>
+                    </div>
+                </div>
+
+                <!-- Leak Item 2 -->
+                <div class="stat-card cursor-pointer" onclick="toggleLeak('speed')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-orange-500 font-black text-sm">02</div>
+                            <div>
+                                <div class="font-bold text-sm">Mobile PageSpeed: 45/100</div>
+                                <div class="text-xs text-slate-400 mt-0.5">LCP delay from hero video + Cloudflare/Shogun script interaction</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xl font-black text-orange-500">€30,240</div>
+                            <div class="text-[10px] text-slate-400 uppercase">/month est.</div>
+                        </div>
+                    </div>
+                    <div id="leak-speed" class="detail-panel mt-4 pt-4 border-t border-slate-100 text-sm text-slate-600 leading-relaxed">
+                        <p>Google's research confirms that every 100ms delay in mobile page load decreases conversion by 7%. At a 45/100 score (vs. the 70+ threshold), Dr. Sam's mobile experience is delivering approximately 4.2 seconds to first meaningful content on 4G. The primary culprits: hero videos not lazy-loaded, and a likely render conflict between Cloudflare Rocket Loader and the Shogun page builder's scripts. Bringing mobile score to 70+ typically yields a meaningful CVR improvement — conservatively modeled as <strong class="text-slate-900">€30,240/month</strong> on mobile revenue.</p>
+                        <p class="mt-3 text-xs text-slate-400 bg-slate-50 rounded-lg p-3"><strong class="text-slate-600">How this is calculated:</strong> Base = €504,000/month mobile (see above). Google benchmark: every 100ms delay = 7% CVR decrease; moving from score 45 to 70+ industry benchmark = 18–22% CVR lift potential. Conservative recovery modeled at 6% to account for only partial score improvement = €504,000 × 6% = <strong class="text-slate-600">€30,240/month</strong>.</p>
+                    </div>
+                </div>
+
+                <!-- Leak Item 3 -->
+                <div class="stat-card cursor-pointer" onclick="toggleLeak('atc')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 font-black text-sm">03</div>
+                            <div>
+                                <div class="font-bold text-sm">No Sticky Add-to-Cart on Mobile</div>
+                                <div class="text-xs text-slate-400 mt-0.5">ATC button buried below fold, out of thumb zone on mobile PDPs</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xl font-black text-amber-500">€15,120</div>
+                            <div class="text-[10px] text-slate-400 uppercase">/month est.</div>
+                        </div>
+                    </div>
+                    <div id="leak-atc" class="detail-panel mt-4 pt-4 border-t border-slate-100 text-sm text-slate-600 leading-relaxed">
+                        <p>On mobile PDPs, the Add-to-Cart button requires the user to scroll past the product description, ingredients list, and clinical info sections before they can add to cart — or scroll back up to the top. A sticky ATC that appears as soon as a user scrolls past the hero image is one of the most reliably proven mobile CVR improvements in DTC. Baymard Institute research and DTC case studies consistently show an <strong class="text-slate-900">8–12% mobile CVR lift</strong> from persistent ATC accessibility. Modeled conservatively at 3% = <strong class="text-slate-900">€15,120/month</strong>.</p>
+                        <p class="mt-3 text-xs text-slate-400 bg-slate-50 rounded-lg p-3"><strong class="text-slate-600">How this is calculated:</strong> Base = €504,000/month mobile (see above). Baymard Institute + DTC case study benchmark: 8–12% mobile CVR lift from persistent ATC. Conservative recovery modeled at 3% to reflect brand-specific conditions = €504,000 × 3% = <strong class="text-slate-600">€15,120/month</strong>.</p>
+                    </div>
+                </div>
+
+                <!-- Leak Item 4 -->
+                <div class="stat-card cursor-pointer" onclick="toggleLeak('ai')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-violet-50 rounded-xl flex items-center justify-center text-violet-500 font-black text-sm">04</div>
+                            <div>
+                                <div class="font-bold text-sm">AI Search Invisibility Gap (GEO)</div>
+                                <div class="text-xs text-slate-400 mt-0.5">Dr. Sam Bunting cited as expert. Products not recommended. Schema missing.</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xl font-black text-violet-600">€14,400</div>
+                            <div class="text-[10px] text-slate-400 uppercase">/month est.</div>
+                        </div>
+                    </div>
+                    <div id="leak-ai" class="detail-panel mt-4 pt-4 border-t border-slate-100 text-sm text-slate-600 leading-relaxed">
+                        <p>When a user asks ChatGPT, Perplexity, or Google SGE <em>"what's the best dermatologist azelaic acid serum?"</em>, Dr. Sam Bunting appears as a credible voice — but the Neutralise Serum is not surfaced as a recommended product. This is not a content quality problem. The site has excellent clinical content. The issue is that <strong class="text-slate-900">MedicalEntity and FAQPage JSON-LD schema are missing</strong> — meaning AI engines can't connect the doctor's authority to the products she formulated. With 40% of beauty consumers now beginning discovery via AI search, this gap compounds monthly. Conservative estimate: <strong class="text-slate-900">€14,400/month</strong> in incremental organic revenue not being captured.</p>
+                        <p class="mt-3 text-xs text-slate-400 bg-slate-50 rounded-lg p-3"><strong class="text-slate-600">How this is calculated:</strong> AI search now accounts for an estimated 10–15% of new discovery sessions in the beauty category. Modeled at 3% of total DTC monthly revenue (€14.4M × 70% ÷ 12 = €840k/mo DTC base) currently lost due to missing GEO schema = <strong class="text-slate-600">€14,400/month</strong>. This is intentionally the most conservative line item, as AI citation uplift depends on content quality already present on this site.</p>
+                    </div>
+                </div>
+
+                <!-- Leak Item 5 -->
+                <div class="stat-card cursor-pointer" onclick="toggleLeak('seo')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 font-black text-sm">05</div>
+                            <div>
+                                <div class="font-bold text-sm">Keyword Cannibalization (Blog vs. PDP)</div>
+                                <div class="text-xs text-slate-400 mt-0.5">Blog posts and product pages fighting for the same search terms</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xl font-black text-blue-600">€9,000</div>
+                            <div class="text-[10px] text-slate-400 uppercase">/month est.</div>
+                        </div>
+                    </div>
+                    <div id="leak-seo" class="detail-panel mt-4 pt-4 border-t border-slate-100 text-sm text-slate-600 leading-relaxed">
+                        <p>The "Expert Advice" blog posts (e.g., "How to Use Azelaic Acid") are competing directly with the Neutralise Serum PDP for terms like "Azelaic acid" and "Azelaic acid for acne." Google is choosing to rank the blog post — because it has more inbound links — which means the purchase-intent page is suppressed in organic results. The fix involves canonical tags, internal linking architecture, and H2 rewrites on PDPs. Estimated organic traffic recovery: <strong class="text-slate-900">€9,000/month</strong> in incremental purchase-intent sessions.</p>
+                        <p class="mt-3 text-xs text-slate-400 bg-slate-50 rounded-lg p-3"><strong class="text-slate-600">How this is calculated:</strong> DTC monthly base = €14.4M × 70% ÷ 12 = <strong class="text-slate-600">€840,000/month</strong>. Keyword cannibalization in a content-rich DTC brand typically suppresses 3–5 high-intent PDPs, each losing 20–30% of their organic potential. Conservative recovery modeled at ~1.1% of monthly DTC base, representing regained ranking position on 2–3 core product terms = <strong class="text-slate-600">€9,000/month</strong>.</p>
+                    </div>
+                </div>
+
+                <!-- Total -->
+                <div class="bg-slate-900 text-white rounded-2xl p-6 flex items-center justify-between">
+                    <div>
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Estimated Monthly Revenue Leak</div>
+                        <div class="text-sm text-slate-300">Based on €14.4M annual revenue, 70% DTC, 60% mobile split</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-4xl font-black text-white">~€78,800</div>
+                        <div class="text-xs text-slate-400 uppercase tracking-widest mt-1">per month · ~€946,000/yr</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- AI SEARCH GAP -->
+        <section class="space-y-10">
+            <div class="grid lg:grid-cols-2 gap-12 items-start">
+                <div class="space-y-6">
+                    <div class="text-xs font-bold text-violet-500 uppercase tracking-widest">The GEO Problem</div>
+                    <h2 class="text-4xl font-black tracking-tight leading-tight">AI search knows the doctor.<br><span class="text-slate-400 font-light">Not the products.</span></h2>
+                    <p class="text-slate-500 leading-relaxed">40% of beauty consumers now begin product discovery through AI-assisted search. When they ask ChatGPT or Perplexity for a recommendation, Dr. Sam Bunting is cited as an authority — but her products are invisible. The fix is technical, not editorial.</p>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3 text-sm">
+                            <div class="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xs flex-shrink-0">✗</div>
+                            <span class="text-slate-600">Missing <code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs">MedicalEntity</code> JSON-LD on Dr. Sam's About page</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-sm">
+                            <div class="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xs flex-shrink-0">✗</div>
+                            <span class="text-slate-600">Missing <code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs">FAQPage</code> schema on Expert Advice blog</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-sm">
+                            <div class="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xs flex-shrink-0">✗</div>
+                            <span class="text-slate-600">No structured link between the formulator and the formula</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-sm">
+                            <div class="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xs flex-shrink-0">✗</div>
+                            <span class="text-slate-600">Product schema lacks clinical claim annotations</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">Queries Dr. Sam's Should Own — But Doesn't</div>
+                    <div class="ai-query">
+                        <span class="text-violet-500 text-base mt-0.5">❓</span>
+                        <span>"What's the best <span class="highlight-word">dermatologist-recommended azelaic acid serum</span> for rosacea in the UK?"</span>
+                    </div>
+                    <div class="ai-query">
+                        <span class="text-violet-500 text-base mt-0.5">❓</span>
+                        <span>"Is <span class="highlight-word">Dr. Sam Bunting's Flawless Brightly</span> safe during pregnancy?"</span>
+                    </div>
+                    <div class="ai-query">
+                        <span class="text-violet-500 text-base mt-0.5">❓</span>
+                        <span>"How long does <span class="highlight-word">azelaic acid take to work</span> on hyperpigmentation?"</span>
+                    </div>
+                    <div class="ai-query">
+                        <span class="text-violet-500 text-base mt-0.5">❓</span>
+                        <span>"Best <span class="highlight-word">dermatologist skincare for perimenopause</span> — what does the research say?"</span>
+                    </div>
+                    <div class="ai-query">
+                        <span class="text-violet-500 text-base mt-0.5">❓</span>
+                        <span>"What is the best <span class="highlight-word">Dr. Sam routine for barrier repair</span>?"</span>
+                    </div>
+                    <div class="mt-4 p-4 bg-violet-50 border border-violet-100 rounded-xl text-xs text-violet-700 leading-relaxed">
+                        <strong>These queries are being answered by AI right now.</strong> Dr. Sam Bunting is cited as a trusted voice — Neutralise, Flawless Brightly, and SPF 50+ are not surfaced as recommended products. Paula's Choice and Medik8 are capturing this traffic by default.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- KEYWORD OPPORTUNITIES -->
+        <section class="space-y-10">
+            <div>
+                <div class="text-xs font-bold text-blue-500 uppercase tracking-widest mb-3">Keyword Intelligence</div>
+                <h2 class="text-4xl font-black tracking-tight">Uncontested territory,<br><span class="text-slate-400 font-light">waiting to be claimed.</span></h2>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="stat-card">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <div class="font-bold text-sm">"NAD+ skincare benefits"</div>
+                            <div class="text-xs text-slate-400 mt-0.5">Medical long-form guide play</div>
+                        </div>
+                        <div class="bg-green-50 text-green-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Low Comp.</div>
+                    </div>
+                    <div class="text-2xl font-black mb-1">~1,200<span class="text-sm font-normal text-slate-400">/mo</span></div>
+                    <div class="progress-bar mt-2"><div class="progress-fill bg-green-400" style="width: 25%"></div></div>
+                    <div class="text-xs text-slate-400 mt-2">Opportunity: Cornerstone guide → Dr. Sam's NAD+ product or routine recommendation</div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <div class="font-bold text-sm">"Azelaic acid vs retinol for acne"</div>
+                            <div class="text-xs text-slate-400 mt-0.5">Bridge content: Blog → Neutralise PDP</div>
+                        </div>
+                        <div class="bg-amber-50 text-amber-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Med Comp.</div>
+                    </div>
+                    <div class="text-2xl font-black mb-1">~1,600<span class="text-sm font-normal text-slate-400">/mo</span></div>
+                    <div class="progress-bar mt-2"><div class="progress-fill bg-amber-400" style="width: 55%"></div></div>
+                    <div class="text-xs text-slate-400 mt-2">Dr. Sam is the ideal author. Neutralise is the natural product recommendation.</div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <div class="font-bold text-sm">"Non-comedogenic routine for rosacea"</div>
+                            <div class="text-xs text-slate-400 mt-0.5">High intent — dedicated landing page</div>
+                        </div>
+                        <div class="bg-amber-50 text-amber-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Med Comp.</div>
+                    </div>
+                    <div class="text-2xl font-black mb-1">~850<span class="text-sm font-normal text-slate-400">/mo</span></div>
+                    <div class="progress-bar mt-2"><div class="progress-fill bg-amber-400" style="width: 45%"></div></div>
+                    <div class="text-xs text-slate-400 mt-2">Purchase-ready audience. Should resolve to a Dr. Sam's curated routine page.</div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <div class="font-bold text-sm">"Dermatologist skincare for perimenopause"</div>
+                            <div class="text-xs text-slate-400 mt-0.5">Niche authority with zero direct competition</div>
+                        </div>
+                        <div class="bg-green-50 text-green-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Low Comp.</div>
+                    </div>
+                    <div class="text-2xl font-black mb-1">~500<span class="text-sm font-normal text-slate-400">/mo</span></div>
+                    <div class="progress-bar mt-2"><div class="progress-fill bg-green-400" style="width: 15%"></div></div>
+                    <div class="text-xs text-slate-400 mt-2">No skincare brand with Dr. Sam's credentials is targeting this. First-mover advantage.</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- 90-DAY ROADMAP -->
+        <section class="space-y-12">
+            <div class="text-center max-w-2xl mx-auto">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">The Plan</div>
+                <h2 class="text-4xl font-black tracking-tight">90 Days to Close the Gap.</h2>
+                <p class="text-slate-500 mt-4">Three phases. Measurable outcomes at each milestone. Revenue recovery begins in Week 1.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Phase 1 -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">1</div>
+                        <span class="text-xs font-bold text-red-500 uppercase tracking-widest">Stop the Bleeding</span>
+                        <span class="text-xs text-slate-400">Weeks 1–4</span>
+                    </div>
+                    <div class="phase-card phase-1 bg-white rounded-xl p-5 shadow-sm" onclick="showPhase('country-selector')">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="font-bold text-sm">Kill the Country Overlay</div>
+                                <div class="text-xs text-slate-400 mt-1">Geo-IP replacement → +2% net CVR recovery</div>
+                            </div>
+                            <div class="text-xs font-bold text-red-500 whitespace-nowrap">€10k/mo</div>
+                        </div>
+                        <div id="country-selector" class="detail-panel mt-3 text-xs text-slate-500 leading-relaxed">
+                            Replace the full-screen overlay with automatic geo-IP detection. Use the visitor's IP to pre-select region and show a subtle dismissible header flag. Users can still change region — but it's no longer the first experience they have.
+                        </div>
+                    </div>
+                    <div class="phase-card phase-1 bg-white rounded-xl p-5 shadow-sm" onclick="showPhase('checkout-fix')">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="font-bold text-sm">Fix Safari Checkout Conflict</div>
+                                <div class="text-xs text-slate-400 mt-1">Recharge + Klarna JS script audit</div>
+                            </div>
+                            <div class="text-xs font-bold text-red-500 whitespace-nowrap">Immediate</div>
+                        </div>
+                        <div id="checkout-fix" class="detail-panel mt-3 text-xs text-slate-500 leading-relaxed">
+                            Investigate the interaction between Recharge's subscription script, the Klarna payment flow, and any Shogun-injected JS on the checkout page. Safari strict mode handles async scripts differently. Resolve the conflict to stop mid-purchase abandonment on iOS.
+                        </div>
+                    </div>
+                    <div class="phase-card phase-1 bg-white rounded-xl p-5 shadow-sm" onclick="showPhase('sticky-atc')">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="font-bold text-sm">Sticky Add-to-Cart (Mobile)</div>
+                                <div class="text-xs text-slate-400 mt-1">Low-code configuration → +3% mobile CVR</div>
+                            </div>
+                            <div class="text-xs font-bold text-red-500 whitespace-nowrap">€15k/mo</div>
+                        </div>
+                        <div id="sticky-atc" class="detail-panel mt-3 text-xs text-slate-500 leading-relaxed">
+                            Implement a sticky buy bar that appears after the user scrolls past the primary product image. Include: product name, star rating, price, and ATC button. Thumb-zone positioned. Highest-impact, lowest-effort conversion fix available.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 2 -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">2</div>
+                        <span class="text-xs font-bold text-blue-500 uppercase tracking-widest">Lift the Ceiling</span>
+                        <span class="text-xs text-slate-400">Weeks 5–8</span>
+                    </div>
+                    <div class="phase-card phase-2 bg-white rounded-xl p-5 shadow-sm" onclick="showPhase('mobile-speed')">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="font-bold text-sm">Mobile Speed: 45→70+</div>
+                                <div class="text-xs text-slate-400 mt-1">Lazy-load, LCP audit, Cloudflare fix</div>
+                            </div>
+                            <div class="text-xs font-bold text-blue-500 whitespace-nowrap">€30k/mo</div>
+                        </div>
+                        <div id="mobile-speed" class="detail-panel mt-3 text-xs text-slate-500 leading-relaxed">
+                            Lazy-load all hero videos on the homepage. Compress above-fold images to WebP. Audit the Cloudflare Rocket Loader interaction with Shogun page builder — this combination frequently causes unnecessary render-blocking in DTC Shopify themes.
+                        </div>
+                    </div>
+                    <div class="phase-card phase-2 bg-white rounded-xl p-5 shadow-sm" onclick="showPhase('schema-inject')">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="font-bold text-sm">Schema Injection</div>
+                                <div class="text-xs text-slate-400 mt-1">MedicalEntity + FAQPage JSON-LD</div>
+                            </div>
+                            <div class="text-xs font-bold text-blue-500 whitespace-nowrap">AI Ready</div>
+                        </div>
+                        <div id="schema-inject" class="detail-panel mt-3 text-xs text-slate-500 leading-relaxed">
+                            Inject MedicalEntity schema on Dr. Sam's About page, linking her credentials to each product she formulated. Add FAQPage schema to all Expert Advice blog posts. Add Product schema with clinical claim annotations to hero SKU PDPs.
+                        </div>
+                    </div>
+                    <div class="phase-card phase-2 bg-white rounded-xl p-5 shadow-sm" onclick="showPhase('pdp-rewrite')">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="font-bold text-sm">Neutralise PDP Rewrite</div>
+                                <div class="text-xs text-slate-400 mt-1">H2s rewritten for AI query matching</div>
+                            </div>
+                            <div class="text-xs font-bold text-blue-500 whitespace-nowrap">GEO Lift</div>
+                        </div>
+                        <div id="pdp-rewrite" class="detail-panel mt-3 text-xs text-slate-500 leading-relaxed">
+                            Rewrite H2s from generic "The Benefits" to specific, query-matching language: "The Science of Redness Reduction: How Neutralise Works." Clinical Results section moved above the fold. Internal links to relevant blog posts added.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 3 -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">3</div>
+                        <span class="text-xs font-bold text-green-500 uppercase tracking-widest">Own the Category</span>
+                        <span class="text-xs text-slate-400">Weeks 9–12</span>
+                    </div>
+                    <div class="phase-card phase-3 bg-white rounded-xl p-5 shadow-sm" onclick="showPhase('geo-content')">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="font-bold text-sm">GEO Content Layer</div>
+                                <div class="text-xs text-slate-400 mt-1">4 long-form AI-target guides published</div>
+                            </div>
+                            <div class="text-xs font-bold text-green-500 whitespace-nowrap">€14k/mo</div>
+                        </div>
+                        <div id="geo-content" class="detail-panel mt-3 text-xs text-slate-500 leading-relaxed">
+                            Publish 4 definitive medical long-form guides targeting the highest-value AI search queries: NAD+ skincare, perimenopause skin, barrier repair science, azelaic acid vs. retinol. Each guide ends with a "Shop the Routine" CTA linked to relevant PDPs.
+                        </div>
+                    </div>
+                    <div class="phase-card phase-3 bg-white rounded-xl p-5 shadow-sm" onclick="showPhase('cannibalization')">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="font-bold text-sm">Keyword Deconflict</div>
+                                <div class="text-xs text-slate-400 mt-1">Blog vs. PDP cannibalization resolved</div>
+                            </div>
+                            <div class="text-xs font-bold text-green-500 whitespace-nowrap">€9k/mo</div>
+                        </div>
+                        <div id="cannibalization" class="detail-panel mt-3 text-xs text-slate-500 leading-relaxed">
+                            Implement canonical tags to deconflict blog/PDP pairs. Add "Shop Neutralise" internal links from all azelaic acid blog posts. Reposition blog content as top-of-funnel, PDPs as bottom-of-funnel — each serving a distinct search intent.
+                        </div>
+                    </div>
+                    <div class="phase-card phase-3 bg-white rounded-xl p-5 shadow-sm" onclick="showPhase('linking')">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="font-bold text-sm">Internal Link Architecture</div>
+                                <div class="text-xs text-slate-400 mt-1">Blog → Product pipeline, every post</div>
+                            </div>
+                            <div class="text-xs font-bold text-green-500 whitespace-nowrap">CVR Lift</div>
+                        </div>
+                        <div id="linking" class="detail-panel mt-3 text-xs text-slate-500 leading-relaxed">
+                            Every Expert Advice post gets a "Shop the Routine" sidebar or mid-text callout. Every PDP "How to Use" section links to the relevant deep-dive guide. This creates a closed loop between education and purchase — increasing time-on-site and revenue per session.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- CLOSING CTA -->
+        <section class="bg-slate-900 text-white rounded-3xl p-12 text-center space-y-6">
+            <div class="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-300">
+                The Next Step
+            </div>
+            <h2 class="text-4xl font-black tracking-tight">Phase 1 pays for itself<br><span class="text-slate-400 font-light">in 30 days.</span></h2>
+            <p class="text-slate-400 max-w-xl mx-auto leading-relaxed">
+                Five fixable gaps. No redesign required. The brand authority is already there — this is about making sure the platform matches it. One conversation is all it takes to map the specifics to your roadmap.
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                <div class="bg-white/5 border border-white/10 rounded-2xl px-8 py-6 text-left min-w-[200px]">
+                    <div class="text-3xl font-black">30</div>
+                    <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Days to first recovery</div>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-2xl px-8 py-6 text-left min-w-[200px]">
+                    <div class="text-3xl font-black">~€79k</div>
+                    <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Monthly revenue recovered</div>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-2xl px-8 py-6 text-left min-w-[200px]">
+                    <div class="text-3xl font-black">90</div>
+                    <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Days to full implementation</div>
+                </div>
+            </div>
+        
+        <!-- Book a call CTA -->
+        <div class="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="https://calendar.app.google/A1dYr2t9GS3L9Mtt9" target="_blank" rel="noopener noreferrer"
+               class="inline-flex items-center gap-2 bg-[#4074c5] hover:bg-[#3060b0] text-white font-semibold text-sm px-8 py-4 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl">
+                Book a Strategy Call
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </a>
+            <a href="mailto:amy@digitalkniss.com"
+               class="inline-flex items-center gap-2 border border-white/30 hover:border-white/60 text-white font-medium text-sm px-8 py-4 rounded-full transition-all duration-200">
+                Email Amy directly
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </a>
+        </div>
+</section>
+
+    </main>
+
+    <footer class="py-10 border-t border-slate-100 text-center">
+        <div class="text-xs text-slate-400 uppercase tracking-widest">Diagnostic prepared by DigitalKniss · February 2026</div>
+        <div class="text-xs text-slate-300 mt-1">Revenue estimates based on industry benchmarks for DTC beauty brands at €10M+ revenue tier.</div>
+    </footer>
+
+    <script>
+        // Radar Chart
+        const ctx = document.getElementById('healthRadar').getContext('2d');
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: [
+                    'Mobile Experience',
+                    'PDP Conversion',
+                    'AI/GEO Visibility',
+                    'Schema Health',
+                    'Checkout Flow',
+                    'Blog Monetization',
+                    'Page Speed'
+                ],
+                datasets: [{
+                    label: 'Dr. Sam\'s Today',
+                    data: [45, 55, 15, 20, 50, 40, 45],
+                    backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                    borderColor: '#dc2626',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#dc2626',
+                    pointRadius: 4,
+                }, {
+                    label: '2026 DTC Standard',
+                    data: [88, 92, 85, 90, 95, 88, 82],
+                    backgroundColor: 'rgba(124, 58, 237, 0.08)',
+                    borderColor: '#7c3aed',
+                    borderWidth: 2,
+                    borderDash: [5, 3],
+                    pointBackgroundColor: '#7c3aed',
+                    pointRadius: 3,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        suggestedMin: 0,
+                        suggestedMax: 100,
+                        ticks: { display: false, stepSize: 25 },
+                        grid: { color: 'rgba(0,0,0,0.06)' },
+                        pointLabels: {
+                            font: { size: 11, weight: '600' },
+                            color: '#64748b'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            font: { size: 11 },
+                            color: '#64748b',
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+
+        // Revenue Leak Toggles
+        function toggleLeak(id) {
+            const panel = document.getElementById('leak-' + id);
+            if (panel) {
+                panel.classList.toggle('visible');
+            }
+        }
+
+        // Roadmap Phase Card Toggles
+        function showPhase(id) {
+            const panel = document.getElementById(id);
+            if (panel) {
+                if (panel.classList.contains('visible')) {
+                    panel.classList.remove('visible');
+                } else {
+                    panel.classList.add('visible');
+                }
+            }
+        }
+
+        // Animate progress bars on load
+        window.addEventListener('load', () => {
+            const fills = document.querySelectorAll('.progress-fill');
+            fills.forEach(fill => {
+                const width = fill.style.width;
+                fill.style.width = '0%';
+                setTimeout(() => { fill.style.width = width; }, 500);
+            });
+        });
+    </script>
+</body>
+</html>
